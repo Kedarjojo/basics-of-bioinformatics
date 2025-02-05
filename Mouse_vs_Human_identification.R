@@ -1,17 +1,17 @@
 ### Create a main Seurat object with entire mouse brain (cereb/cortex/striat) data
 
 
-genename<-read.delim("/efs/home/vyadav/snRNA_MAPT_Mouse_Brain/aggregate_analysis_filtered/aggregate_analysis_cortex_filtered/filtered_feature_bc_matrix/features.tsv.gz", header = FALSE, sep = "\t") 
-sample<-read.delim("/efs/home/vyadav/snRNA_MAPT_Mouse_Brain/aggregate_analysis_filtered/aggregate_analysis_cortex_filtered/filtered_feature_bc_matrix/barcodes.tsv.gz", header = FALSE, sep = "\t") 
-wt_data <- readMM(file = "/efs/home/vyadav/snRNA_MAPT_Mouse_Brain/aggregate_analysis_filtered/aggregate_analysis_cortex_filtered/filtered_feature_bc_matrix/matrix.mtx.gz") 
+genename<-read.delim("datasource/snRNA_MAPT_Mouse_Brain/aggregate_analysis_filtered/aggregate_analysis_cortex_filtered/filtered_feature_bc_matrix/features.tsv.gz", header = FALSE, sep = "\t") 
+sample<-read.delim("datasource/snRNA_MAPT_Mouse_Brain/aggregate_analysis_filtered/aggregate_analysis_cortex_filtered/filtered_feature_bc_matrix/barcodes.tsv.gz", header = FALSE, sep = "\t") 
+wt_data <- readMM(file = "datasource/snRNA_MAPT_Mouse_Brain/aggregate_analysis_filtered/aggregate_analysis_cortex_filtered/filtered_feature_bc_matrix/matrix.mtx.gz") 
 
 
 rownames(wt_data)<-genename$V2 
 colnames(wt_data)<-sample$V1 
 
-meta1<-read.csv("/efs/home/vyadav/snRNA_MAPT_Mouse_Brain/custom_analysis/mouse_cortex_snrna_01/integrated/csv_for_cellranger_and_loupe/barcode_vs_cell_type_for_loupe.csv",sep = ",") 
+meta1<-read.csv("datasource/snRNA_MAPT_Mouse_Brain/custom_analysis/mouse_cortex_snrna_01/integrated/csv_for_cellranger_and_loupe/barcode_vs_cell_type_for_loupe.csv",sep = ",") 
 rownames(meta1)<-meta1$barcode 
-meta2<-read.csv("/efs/home/vyadav/snRNA_MAPT_Mouse_Brain/custom_analysis/mouse_cortex_snrna_01/integrated/csv_for_cellranger_and_loupe/barcode_vs_sample_name_for_loupe.csv",sep = ",") 
+meta2<-read.csv("datasource/snRNA_MAPT_Mouse_Brain/custom_analysis/mouse_cortex_snrna_01/integrated/csv_for_cellranger_and_loupe/barcode_vs_sample_name_for_loupe.csv",sep = ",") 
 rownames(meta2)<-meta2$barcode
 meta<-cbind(meta1,meta2) 
 
@@ -34,17 +34,17 @@ CNS_mice_brain <- RunUMAP(CNS_mice_brain, reduction = "harmony", dims =1:25)
 
 ## Attach the part of brain data you want to process to the main data
 
-human_matrix <- ReadMtx(mtx = "/efs/home/kjoshi/MAPT_Human/Cereb10_11/outs/filtered_feature_bc_matrix/matrix.mtx", 
-                        cells = "/efs/home/kjoshi/MAPT_Human/Cereb10_11/outs/filtered_feature_bc_matrix/barcodes.tsv",                        
-                        features = "/efs/home/kjoshi/MAPT_Human/Cereb10_11/outs/filtered_feature_bc_matrix/features.tsv") 
+human_matrix <- ReadMtx(mtx = "datasource_kedar/MAPT_Human/Cereb10_11/outs/filtered_feature_bc_matrix/matrix.mtx", 
+                        cells = "datasource_kedar/MAPT_Human/Cereb10_11/outs/filtered_feature_bc_matrix/barcodes.tsv",                        
+                        features = "datasource_kedar/MAPT_Human/Cereb10_11/outs/filtered_feature_bc_matrix/features.tsv") 
 
-mouse_matrix <- ReadMtx(mtx = "/efs/home/kjoshi/MAPT_Mouse/Cereb10_11/outs/filtered_feature_bc_matrix/matrix.mtx", 
-                        cells = "/efs/home/kjoshi/MAPT_Mouse/Cereb10_11/outs/filtered_feature_bc_matrix/barcodes.tsv",                        
-                        features = "/efs/home/kjoshi/MAPT_Mouse/Cereb10_11/outs/filtered_feature_bc_matrix/features.tsv") 
+mouse_matrix <- ReadMtx(mtx = "datasource_kedar/MAPT_Mouse/Cereb10_11/outs/filtered_feature_bc_matrix/matrix.mtx", 
+                        cells = "datasource_kedar/MAPT_Mouse/Cereb10_11/outs/filtered_feature_bc_matrix/barcodes.tsv",                        
+                        features = "datasource_kedar/MAPT_Mouse/Cereb10_11/outs/filtered_feature_bc_matrix/features.tsv") 
 
 
-human_barcodes <- read.delim("/efs/home/kjoshi/MAPT_Human/Cereb10_11/outs/filtered_feature_bc_matrix/barcodes.tsv", header = FALSE) 
-mouse_barcodes <- read.delim("/efs/home/kjoshi/MAPT_Mouse/Cereb10_11/outs/filtered_feature_bc_matrix/barcodes.tsv", header = FALSE) 
+human_barcodes <- read.delim("datasource_kedar/MAPT_Human/Cereb10_11/outs/filtered_feature_bc_matrix/barcodes.tsv", header = FALSE) 
+mouse_barcodes <- read.delim("datasource_kedar/MAPT_Mouse/Cereb10_11/outs/filtered_feature_bc_matrix/barcodes.tsv", header = FALSE) 
 
 
 
