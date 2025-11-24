@@ -1,0 +1,818 @@
+---
+title: "Predicting Parkinsons Disease total and motor_UODRS scores using linear regression, decision tress, random forests"
+subtitle: "DA5030"
+author: "Kedar joshi"
+date: "2024-04-15"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+### 1 / Loading the dataset
+
+```{r}
+library(utils)
+
+# Define the URL of the zip file
+zip_url <- "https://archive.ics.uci.edu/static/public/189/parkinsons+telemonitoring.zip"
+
+# Defining the destination directory where the file needs to be stored
+destination_dir <- "/home/joshi.ked/DA5030/Project/parkinsons_telemonitoring_data"
+
+# Downloading and then unziping the zip files
+temp <- tempfile()
+download.file(zip_url, temp)
+unzip(temp, exdir = destination_dir)
+unlink(temp)
+
+# Loading the .data file as a csv file and saving it to a dataset named data
+data_file <- file.path(destination_dir, "parkinsons_updrs.data")
+data <- read.csv(data_file)
+```
+
+
+#### This dataset is composed of a range of biomedical voice measurements from 42 people with early-stage Parkinson's disease recruited to a six-month trial of a telemonitoring device for remote symptom progression monitoring. The recordings were automatically captured in the patient's homes.
+
+
+#### Columns in the table contain subject number, subject age, subject gender, time interval from baseline recruitment date, motor UPDRS, total UPDRS, and 16 biomedical voice measures. Each row corresponds to one of 5,875 voice recording from these individuals. The main aim of the data is to predict the motor and total UPDRS scores ('motor_UPDRS' and 'total_UPDRS') from the 16 voice measures.
+
+
+#### ATTRIBUTE INFORMATION:
+
+#### subject# - Integer that uniquely identifies each subject
+#### age - Subject age
+#### sex - Subject gender '0' - male, '1' - female
+#### test_time - Time since recruitment into the trial. The integer part is the number of days since recruitment.
+#### motor_UPDRS - Clinician's motor UPDRS score, linearly interpolated. Available from previous studies
+#### total_UPDRS - Clinician's total UPDRS score, linearly interpolated. Available from previous studies
+#### Jitter(%),Jitter(Abs),Jitter:RAP,Jitter:PPQ5,Jitter:DDP - Several measures of variation in fundamental frequency
+#### Shimmer,Shimmer(dB),Shimmer:APQ3,Shimmer:APQ5,Shimmer:APQ11,Shimmer:DDA - Several measures of variation in amplitude
+#### NHR,HNR - Two measures of ratio of noise to tonal components in the voice
+#### RPDE - A nonlinear dynamical complexity measure
+#### DFA - Signal fractal scaling exponent
+#### PPE - A nonlinear measure of fundamental frequency variation 
+
+
+### 2 / Exploring and Understanding the data
+```{r}
+library(MASS)
+
+str(data)
+head(data)
+
+summary(data)
+summary(data$age)
+
+hist(data$test_time, main = "Histogram of data", xlab = "data$test_time")
+hist(data$age, main = "Histogram of data", xlab = "data$age")
+
+boxplot(data$test_time)
+
+# Chi-squared analysis
+chi_squared <- chisq.test(data$sex, data$NHR)
+print(chi_squared)
+
+```
+
+#### Here I tried plotting a histogram of test_time to understand the distribution. The distribution is normal, there is no right or left skew. Also I printed out the first few lines, summary and structure to understand more about the data.
+
+### 3 / Normalising the numeric features
+
+```{r}
+normalise<-function(x){
+  return((x-min(x))/max((x)-min(x)))
+}
+
+data_norm <- as.data.frame(lapply(data[2:22], normalise))
+data_norm$subject <- data$`subject#`
+```
+
+### Given the importance of normalisation, and seeing that our data contains numerical values spread all over the place we noemalise the values using min-max. We define a function normalise and apply it on the entire dataset to create a dataset (data_norm) containing the normalised values.
+
+### 4 / Handling missing values
+```{r}
+total_missing <- sum(is.na(data_norm))
+print(total_missing)
+
+# Since we dont have any missing values we will simulate missing values by randomly deleting some values
+
+# Set seed for reproducibility
+set.seed(123)  
+
+# Specify the percentage of values to be made missing
+missing_percentage <- 0.001  
+
+n_missing <- round(nrow(data_norm) * missing_percentage)
+
+# Randomly select the indices to introduce missing values
+missing_indices <- sample(1:nrow(data_norm), n_missing)
+
+# Replace the selected values with NA
+data_norm[missing_indices, ] <- NA
+
+# Now that we have NA values we will check the total number of missing values
+total_missing <- sum(is.na(data_norm))
+print(total_missing)
+
+# We will then impute missing values for numeric variables with mean
+numeric_columns <- sapply(data_norm, is.numeric)
+for (col in names(data_norm)[numeric_columns]) {
+  data_norm[is.na(data_norm[, col]), col] <- mean(data_norm[, col], na.rm = TRUE)
+}
+
+# Check again if all the missing values are imputed
+total_missing <- sum(is.na(data_norm))
+print(total_missing)
+```
+
+#### We perform a quick check on the missing values, and we dont have any missing values so we dont need to pay attention to that.
+
+### 5 / Finding Outliers
+
+```{r}
+library(psych)
+
+# Create a function outlier which looks for zscore greater than 2.5
+outliers <- function(x) {
+  z.score <- abs((x - mean(x)) / sd(x))
+  is_outlier <- z.score > 2.5
+  return(is_outlier)
+}
+
+# We then apply the outliers function to each column
+outlier_rows <- apply(data_norm[1:21], 1, outliers)
+
+# We find the rows with outliers in any column
+rows_with_outliers <- which(rowSums(outlier_rows) > 0)
+
+# Then filter the dataframe to include only rows without outliers
+newdata <- data_norm[-rows_with_outliers, ]
+
+# Performing PCA from the raw data
+pca_result_raw <- principal(newdata, nfactors = 5, rotate = "none", scores = TRUE)
+
+loadings <- pca_result_raw$loadings
+print(loadings)
+
+# Create a biplot for pca analysis
+biplot(pca_result_raw)
+```
+
+#### We create a function to find the outliers in the dataset using z score normalisation, wherein the columns having zscore greater than 2.5 are filtered out. Again we save the dataset in a new dataset called data_filtered. Then we try to figure out which variables are our prinicpal components by using PC analysis. I can make a rough estimate that all the Shimmer and Jitter variables are our principal components. Now that we have performed all the necessary tweaking steps to our data we can go ahead with developing models.
+
+
+## 6 / Multiple Linear Regression - Part 1
+
+```{r}
+library(psych)
+
+# Calculating correlations
+cor_matrix <- cor(newdata[, c("age", "sex", "test_time", "motor_UPDRS", "total_UPDRS", 
+                               "Jitter...", "Jitter.Abs.", "Jitter.RAP", "Jitter.PPQ5", 
+                               "Jitter.DDP", "Shimmer", "Shimmer.dB.", "Shimmer.APQ3", 
+                               "Shimmer.APQ5", "Shimmer.APQ11", "Shimmer.DDA", "NHR", 
+                               "HNR", "RPDE", "DFA", "PPE")])
+
+# Creating pairs plot
+pairs.panels(newdata[, c("age", "sex", "test_time", "motor_UPDRS", "total_UPDRS", 
+                         "Jitter...", "Jitter.Abs.", "Jitter.RAP", "Jitter.PPQ5", 
+                         "Jitter.DDP", "Shimmer", "Shimmer.dB.", "Shimmer.APQ3", 
+                         "Shimmer.APQ5", "Shimmer.APQ11", "Shimmer.DDA", "NHR", 
+                         "HNR", "RPDE", "DFA", "PPE")])
+
+
+# Define the filename based on the variables being compared
+filename <- "pairs_plot.png"
+
+# Save the plot as a PNG file
+png(filename = filename, width = 8000, height = 8000, res = 400)
+pairs.panels(newdata[, c("age", "sex", "test_time", "motor_UPDRS", "total_UPDRS", 
+                         "Jitter...", "Jitter.Abs.", "Jitter.RAP", "Jitter.PPQ5", 
+                         "Jitter.DDP", "Shimmer", "Shimmer.dB.", "Shimmer.APQ3", 
+                         "Shimmer.APQ5", "Shimmer.APQ11", "Shimmer.DDA", "NHR", 
+                         "HNR", "RPDE", "DFA", "PPE")],
+             method = "pearson", # or "spearman" for Spearman correlation
+             main = "Pairs Plot",
+             cex.labels = 1.2,   # Adjust label size
+             cex.axis = 1.2)     # Adjust axis size
+dev.off()
+```
+
+#### Here we start with our multiple regression analysis wherein we draw correlations matrix, and create a pairs plot of the variables in our dataset. Additionally, we have saved the pairs plot as a PNG file named "pairs_plot.png".
+
+### 6 / Multiple Linear Regression - Part 2.1
+
+```{r}
+library(stats)
+
+regtotal_model <- lm(total_UPDRS ~ . - motor_UPDRS, data = newdata)
+summary(regtotal_model)
+
+regTotal_model <- lm(total_UPDRS ~ . - motor_UPDRS - Jitter... - Jitter.RAP - Shimmer - Shimmer.APQ5 - Shimmer.APQ11 - RPDE - Shimmer.dB. - Jitter.DDP - Shimmer.DDA - Shimmer.APQ3 - Jitter.PPQ5, data = newdata)
+
+summary(regTotal_model)
+
+a <- anova(regtotal_model, regTotal_model)
+summary(a)
+```
+
+#### Here we perform regression analysis, comparing two regression models, and provides insights into the relationship between predictor variables and the response variable total_UPDRS. regTotal_model is a simplified version of regtotal_model that excludes specific predictor variables. This simplification might be driven by various reasons, such as reducing multicollinearity, improving interpretability, or focusing on the most relevant predictors for predicting total_UPDRS.
+
+
+### 6 / Multiple Linear Regression - Part 2.2
+
+```{r}
+library(stats)
+
+regmotor_model <- lm(motor_UPDRS ~ . - total_UPDRS, data = newdata)
+summary(regmotor_model)
+
+regMotor_model <- lm(motor_UPDRS ~ . - Jitter... - Jitter.RAP - Shimmer - Shimmer.APQ5 - RPDE - Shimmer.dB. - Jitter.DDP - Shimmer.DDA - Shimmer.APQ3 - Jitter.PPQ5 - RPDE, data = newdata)
+summary(regMotor_model)
+
+
+```
+
+#### We do the same thing for motor_UPDRS as we did for total_UPDRS, since we have 2 variables to predict
+
+
+### 6 / Multiple Linear Regression - Part 3.1
+
+```{r}
+# Load the Metrics package
+library(Metrics)
+
+# Get predictions for the first model
+predictions_regtotal <- predict(regtotal_model, newdata)
+
+# Calculate RMSE for the first model
+rmse_regtotal <- rmse(newdata$total_UPDRS, predictions_regtotal)
+cat("RMSE for regtotal_model:", rmse_regtotal, "\n")
+
+# Get predictions for the second model
+predictions_regTotal <- predict(regTotal_model, newdata)
+
+# Calculate RMSE for the second model
+rmse_regTotal <- rmse(newdata$total_UPDRS, predictions_regTotal)
+cat("RMSE for regTotal_model:", rmse_regTotal, "\n")
+
+# MAE for regtotal_model
+mae_regtotal <- mae(newdata$total_UPDRS, predictions_regtotal)
+cat("MAE for regtotal_model:", mae_regtotal, "\n")
+
+# R-squared for regtotal_model
+rsquared_regtotal <- cor(predictions_regtotal, newdata$total_UPDRS)^2
+cat("R-squared for regtotal_model:", rsquared_regtotal, "\n")
+
+# MAE for regTotal_model
+mae_regTotal <- mae(newdata$total_UPDRS, predictions_regTotal)
+cat("MAE for regTotal_model:", mae_regTotal, "\n")
+
+# R-squared for regTotal_model
+rsquared_regTotal <- cor(predictions_regTotal, newdata$total_UPDRS)^2
+cat("R-squared for regTotal_model:", rsquared_regTotal, "\n")
+
+```
+
+#### Next we conduct linear regression modeling on the dataset comprising predictor variables and the response variable (total_UPDRS). Two models are fitted: the first (regtotal_model) employs all variables, while the second (regTotal_model) excludes specific predictors. MAE, R-squared and RMSE (Root Mean Squared Error) is calculated for both models to evaluate their predictive performance, with the results printed to the console. This process allows for a comparison of model accuracy, aiding in the selection of the most suitable model for predicting the total_UPDRS variable.
+
+#### RMSE for regtotal_model: 0.1926719 
+#### RMSE for regTotal_model: 0.1938308 
+#### MAE for regtotal_model: 0.1575778 
+#### R-squared for regtotal_model: 0.2529375 
+#### MAE for regTotal_model: 0.1589262 
+#### R-squared for regTotal_model: 0.2439229 
+
+### 6 / Multiple Linear Regression - Part 3.1
+
+```{r}
+
+# Load the Metrics package
+library(Metrics)
+
+# Get predictions for the first model
+predictions_regmotor <- predict(regmotor_model, newdata)
+
+# Calculate RMSE for the first model
+rmse_regmotor <- rmse(newdata$motor_UPDRS, predictions_regmotor)
+cat("RMSE for regmotor_model:", rmse_regmotor, "\n")
+
+# Get predictions for the second model
+predictions_regMotor <- predict(regMotor_model, newdata)
+
+# Calculate RMSE for the second model
+rmse_regMotor <- rmse(newdata$motor_UPDRS, predictions_regMotor)
+cat("RMSE for regMotor_model:", rmse_regMotor, "\n")
+
+# Calculate MAE for regmotor_model
+mae_regmotor <- mae(newdata$motor_UPDRS, predictions_regmotor)
+cat("MAE for regmotor_model:", mae_regmotor, "\n")
+
+# Calculate R-squared for regmotor_model
+rsquared_regmotor <- cor(predictions_regmotor, newdata$motor_UPDRS)^2
+cat("R-squared for regmotor_model:", rsquared_regmotor, "\n")
+
+# Calculate MAE for regMotor_model
+mae_regMotor <- mae(newdata$motor_UPDRS, predictions_regMotor)
+cat("MAE for regMotor_model:", mae_regMotor, "\n")
+
+# Calculate R-squared for regMotor_model
+rsquared_regMotor <- cor(predictions_regMotor, newdata$motor_UPDRS)^2
+cat("R-squared for regMotor_model:", rsquared_regMotor, "\n")
+
+```
+
+#### Next we conduct linear regression modeling on the dataset comprising predictor variables and the response variable (motor_UPDRS). Two models are fitted: the first (regmotor_model) employs all variables, while the second (regMotor_model) excludes specific predictors. RMSE (Root Mean Squared Error) is calculated for both models to evaluate their predictive performance, with the results printed to the console. This process allows for a comparison of model accuracy, aiding in the selection of the most suitable model for predicting the motor_UPDRS variable.
+
+#### RMSE for regmotor_model: 0.2084751 
+#### RMSE for regMotor_model: 0.07299783 
+#### MAE for regmotor_model: 0.1745128
+#### MAE for regMotor_model: 0.0560356 
+#### R-squared for regmotor_model: 0.2180458 
+#### R-squared for regMotor_model: 0.9041278 
+
+
+### 6 / Multiple Linear Regression using cross validation - Part 4
+
+```{r}
+
+# Load necessary libraries
+library(caret)
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Define number of folds
+num_folds <- 10
+
+# Define the control parameters for cross-validation
+ctrl <- trainControl(method = "cv",  # Using k-fold cross-validation
+                     number = num_folds,  # Number of folds
+                     verboseIter = TRUE)  # Print progress during training
+
+# Define the model formula
+formula_total_UPDRS <- as.formula("total_UPDRS ~ . - motor_UPDRS - Jitter... - Jitter.RAP - Jitter.Abs. - Shimmer - Shimmer.APQ5 - Shimmer.APQ11 - RPDE - Shimmer.dB. - Jitter.DDP - Shimmer.DDA - Shimmer.APQ3 - Jitter.PPQ5")
+
+# Define the model formula
+formula_motor_UPDRS <- as.formula("motor_UPDRS ~ . - total_UPDRS - Jitter... - Jitter.RAP - Shimmer - Shimmer.APQ5 - RPDE - Shimmer.dB. - Jitter.DDP - Shimmer.DDA - Shimmer.APQ3 - Jitter.PPQ5 - RPDE")
+
+# Train the model using k-fold cross-validation
+model_total_UPDRS <- train(formula_total_UPDRS,  # Model formula
+                           data = newdata,  # Dataset
+                           method = "lm",  # Linear regression
+                           trControl = ctrl)  # Cross-validation control
+
+# Train the model using k-fold cross-validation
+model_motor_UPDRS <- train(formula_motor_UPDRS,  # Model formula
+                           data = newdata,  # Dataset
+                           method = "lm",  # Linear regression
+                           trControl = ctrl)  # Cross-validation control
+
+# Display cross-validation results
+print(model_total_UPDRS)
+print(model_motor_UPDRS)
+```
+
+
+#### These results show the performance of the linear regression models (one for predicting total_UPDRS and another for predicting motor_UPDRS) using 10-fold cross-validation.
+
+#### RMSE for total_UPDRS using cross-validation: 0.194 
+#### RMSE for motor_UPDRS using cross-validation: 0.210 
+#### MAE for total_UPDRS using cross-validation: 0.159
+#### MAE for motor_UPDRS using cross-validation: 0.176 
+#### R-squared for total_UPDRS using cross-validation: 0.243 
+#### R-squared for motor_UPDRS using cross-validation: 0.205 
+
+
+### The evaluation of multiple regression models offers valuable insights into predicting both total Unified Parkinson's Disease Rating Scale (UPDRS) scores and motor UPDRS scores. Cross-validated models demonstrate moderate predictive performance for total UPDRS (RMSE: 0.194, MAE: 0.159, R-squared: 0.243) and motor UPDRS (RMSE: 0.210, MAE: 0.176, R-squared: 0.205), with R-squared values indicating the proportion of variance explained by the predictors. Subsequently, individual sub models provide further granularity, showcasing varying degrees of predictive accuracy. Notably, regMotor_model exhibits exceptional performance in predicting motor UPDRS, boasting remarkably low RMSE (0.073) and MAE (0.056) values alongside a notably high R-squared value (0.904). This model stands out as the most accurate for predicting motor UPDRS, highlighting its potential significance in clinical assessments and treatment evaluations. However, further refinement and exploration may be warranted to enhance the overall predictive capability of the models and their applicability in clinical settings.
+
+
+
+## 7.1 / Decision Trees for Regression for total_UPDRS
+
+```{r}
+# Load the necessary library
+library(rpart)
+
+# Split the data into training and testing sets
+set.seed(123)  # for reproducibility
+train_index <- sample(1:nrow(newdata), 0.8 * nrow(newdata))  # 80% for training
+train_data <- newdata[train_index, ]
+test_data <- newdata[-train_index, ]
+
+# Define the formula for the regression tree
+formula_t <- total_UPDRS ~ . - motor_UPDRS - Jitter... - Jitter.Abs. - Jitter.RAP - Shimmer - Shimmer.APQ5 - Shimmer.APQ11 - RPDE - Shimmer.dB. - Jitter.DDP - Shimmer.DDA - Shimmer.APQ3 - Jitter.PPQ5
+
+# Train the decision tree regression model
+tree_model_total <- rpart(formula_t, data = train_data, method = "anova")
+
+# Step 5: Make predictions on the testing data
+predictions_tree_total <- predict(tree_model_total, test_data)
+
+# Evaluate the model's performance
+
+rmse_tree_total <- sqrt(mean((test_data$total_UPDRS - predictions_tree_total)^2))
+mae_tree_total <- mean(abs(test_data$total_UPDRS - predictions_tree_total))
+mse_tree_total <- mean((test_data$total_UPDRS - predictions_tree_total)^2)
+
+# Calculate R-squared
+SS_Residual_total <- sum((test_data$total_UPDRS - predictions_tree_total)^2)
+SS_Total_total <- sum((test_data$total_UPDRS - mean(test_data$total_UPDRS))^2)
+r_squared_total <- 1 - (SS_Residual_total / SS_Total_total)
+
+cat("RMSE for decision tree model for total_UPDRS:", rmse_tree_total, "\n")
+cat("MAE for decision tree model for total_UPDRS:", mae_tree_total, "\n")
+cat("MSE for decision tree model for total_UPDRS:", mse_tree_total, "\n")
+cat("R-squared for decision tree model for total_UPDRS:", r_squared_total, "\n")
+
+# Perform cross-validation
+CrossVal_total_tree <- trainControl(method = "cv", number = 10)  # 10-fold cross-validation
+tree_model_cv_total <- train(formula_t, data = newdata, method = "rpart", trControl = CrossVal_total_tree)
+
+# Print cross-validated performance results
+print(tree_model_cv_total)
+
+# Visualize the cross-validated performance
+plot(tree_model_cv_total)
+
+# Extract cross-validated performance metrics
+rmse_cv_tree_total <- sqrt(mean(tree_model_cv_total$resample$RMSE))
+mse_cv_tree_total  <- mean(tree_model_cv_total$resample$RMSE^2)
+r_squared_cv_tree_total  <- mean(tree_model_cv_total$resample$Rsquared)
+
+cat("Cross-validated RMSE for total_UPDRS:", rmse_cv_tree_total , "\n")
+cat("Cross-validated MSE for total_UPDRS:", mse_cv_tree_total , "\n")
+cat("Cross-validated R-squared for total_UPDRS:", r_squared_cv_tree_total , "\n")
+
+
+plot(tree_model_total)
+text(tree_model_total)
+
+library(rpart.plot)
+
+rpart.plot(tree_model_total)
+summary(tree_model_total)
+```
+
+#### Decision Tree Model without Cross-Validation for total_UPDRS:
+
+#### RMSE: 0.0773
+#### MAE: 0.0605
+#### MSE: 0.00597
+#### R-squared: 0.877
+
+#### Decision Tree Model with Cross-Validation for total_UPDRS:
+
+#### Cross-validated RMSE: 0.4296
+#### Cross-validated MSE: 0.03408
+#### Cross-validated R-squared: 0.3154
+
+#### Upon doing Cross-Validation for total_UPDRS it showed worse values than my regular split train-test data. However, it's essential to consider that cross-validation provides a more robust estimate of the model's performance. To get a better confidence on my model, I went ahead with hyper parameter tuning the model
+
+
+## 7.1.1 / Decision Trees Hyper parameter tuning for total_UPDRS
+
+```{r}
+# Load necessary libraries
+library(rpart)
+library(caret)
+
+# Define the formula
+formula_t <- total_UPDRS ~ . - motor_UPDRS - Jitter... - Jitter.Abs. - Jitter.RAP - Shimmer - Shimmer.APQ5 - Shimmer.APQ11 - RPDE - Shimmer.dB. - Jitter.DDP - Shimmer.DDA - Shimmer.APQ3 - Jitter.PPQ5
+
+# Define the control parameters for tuning
+ctrl_total <- trainControl(method = "cv",   # 10-fold cross-validation
+                     number = 10,
+                     search = "grid")  # Use grid search for hyperparameter tuning
+
+# Define the hyperparameter grid
+hyper_grid_total <- expand.grid(cp = seq(0.001, 0.1, by = 0.001))  # Vary the complexity parameter (cp)
+
+# Train the decision tree model with hyperparameter tuning
+tuned_tree_total <- train(formula_t,                      # Formula
+                          data = train_data,             # Training data
+                          method = "rpart",              # Decision tree method
+                          trControl = ctrl_total,             # Control parameters
+                          tuneGrid = hyper_grid_total)         # Hyperparameter grid
+
+# Print the best model
+print(tuned_tree_total)
+
+# Visualize the tuning process
+plot(tuned_tree_total)
+
+# Make predictions on the testing data
+predictions_tuned_tree_total <- predict(tuned_tree_total, test_data)
+
+# Evaluate the tuned model's performance
+rmse_tuned_tree_total <- sqrt(mean((test_data$total_UPDRS - predictions_tuned_tree_total)^2))
+mae_tuned_tree_total <- mean(abs(test_data$total_UPDRS - predictions_tuned_tree_total))
+mse_tuned_tree_total <- mean((test_data$total_UPDRS - predictions_tuned_tree_total)^2)
+
+# Calculate R-squared
+SS_Residual_tuned_tree_total <- sum((test_data$total_UPDRS - predictions_tuned_tree_total)^2)
+SS_Total_tuned_tree_total <- sum((test_data$total_UPDRS - mean(test_data$total_UPDRS))^2)
+r_squared_tuned_tree_total<- 1 - (SS_Residual_tuned_tree_total / SS_Total_tuned_tree_total)
+
+cat("Tuned model performance:\n")
+cat("RMSE:", rmse_tuned_tree_total, "\n")
+cat("MAE:", mae_tuned_tree_total, "\n")
+cat("MSE:", mse_tuned_tree_total, "\n")
+cat("R-squared:", r_squared_tuned_tree_total, "\n")
+
+
+```
+
+#### RMSE for model tree for total_UPDRS after improving model: 0.03700523   
+#### MAE for model tree for total_UPDRS after improving model: 0.0288263   
+#### MSE for model tree for total_UPDRS after improving model: 0.001369387   
+#### R-squared for model tree for total_UPDRS after improving model: 0.9717997  
+
+ 
+## 7.2 / Decision Trees for Regression for motor_UPDRS
+
+```{r}
+# Load the necessary library
+library(rpart)
+
+# Split the data into training and testing sets
+set.seed(123)  # for reproducibility
+train_index <- sample(1:nrow(newdata), 0.8 * nrow(newdata))  # 80% for training
+train_data <- newdata[train_index, ]
+test_data <- newdata[-train_index, ]
+
+# Define the formula for the regression tree
+forumla_motor <- motor_UPDRS ~ . - total_UPDRS - Jitter... - Jitter.RAP - Shimmer - Shimmer.APQ5 - RPDE - Shimmer.dB. - Jitter.DDP - Shimmer.DDA - Shimmer.APQ3 - Jitter.PPQ5 - RPDE
+
+# Train the decision tree regression model
+tree_model_motor <- rpart(formula_motor_UPDRS, data = train_data, method = "anova")
+
+# Make predictions on the testing data
+predictions_motor_tree <- predict(tree_model_motor, test_data)
+
+# Evaluate the model's performance
+
+rmse_tree_motor <- sqrt(mean((test_data$total_UPDRS - predictions_motor_tree)^2))
+mae_tree_motor <- mean(abs(test_data$total_UPDRS - predictions_motor_tree))
+mse_tree_motor <- mean((test_data$total_UPDRS - predictions_motor_tree)^2)
+
+# Calculate R-squared
+SS_Residual_motor <- sum((test_data$total_UPDRS - predictions_motor_tree)^2)
+SS_Total_motor <- sum((test_data$total_UPDRS - mean(test_data$total_UPDRS))^2)
+r_squared_motor <- 1 - (SS_Residual_motor / SS_Total_motor)
+
+cat("RMSE for decision tree model:", rmse_tree_motor, "\n")
+cat("MAE for decision tree model:", mae_tree_motor, "\n")
+cat("MSE for decision tree model:", mse_tree_motor, "\n")
+cat("R-squared for decision tree model:", r_squared_motor, "\n")
+
+# Perform cross-validation
+CrossVal_motor_tree <- trainControl(method = "cv", number = 10)  # 10-fold cross-validation
+tree_model_cv_motor <- train(formula_motor_UPDRS, data = newdata, method = "rpart", trControl = CrossVal_motor_tree)
+
+# Print cross-validated performance results
+print(tree_model_cv_motor)
+
+# Visualize the cross-validated performance
+plot(tree_model_cv_motor)
+
+# Extract cross-validated performance metrics
+rmse_cv_tree_motor <- sqrt(mean(tree_model_cv_motor$resample$RMSE))
+mse_cv_tree_motor <- mean(tree_model_cv_motor$resample$RMSE^2)
+r_squared_cv_tree_motor <- mean(tree_model_cv_motor$resample$Rsquared)
+
+cat("Cross-validated RMSE:", rmse_cv_tree_motor, "\n")
+cat("Cross-validated MSE:", mse_cv_tree_motor, "\n")
+cat("Cross-validated R-squared:", r_squared_cv_tree_motor, "\n")
+
+
+plot(tree_model_motor)
+text(tree_model_motor)
+
+library(rpart.plot)
+
+rpart.plot(tree_model_motor)
+summary(tree_model_motor)
+```
+
+#### Decision Tree Model without Cross-Validation for motor_UPDRS:
+
+#### RMSE for decision tree model: 0.07728754 
+#### MAE for decision tree model: 0.06053191 
+#### MSE for decision tree model: 0.005973363 
+#### R-squared for decision tree model: 0.8769884 
+
+#### Decision Tree Model with Cross-Validation for motor_UPDRS:
+
+#### Cross-validated RMSE: 0.4296204 
+#### Cross-validated MSE: 0.03407828 
+#### Cross-validated R-squared: 0.3153978 
+
+#### Upon doing Cross-Validation for motor_UPDRS it showed worse values than my regular split train-test data. However, it's essential to consider that cross-validation provides a more robust estimate of the model's performance. To get a better confidence on my model, I went ahead with hyper parameter tuning the model.
+
+
+## 7.2.1 / Decision Trees Hyper parameter tuning for motor_UPDRS
+
+```{r}
+# Load the necessary library
+library(rpart)
+library(caret)
+
+# Split the data into training and testing sets
+set.seed(123)  # for reproducibility
+train_index <- sample(1:nrow(newdata), 0.8 * nrow(newdata))  # 80% for training
+train_data <- newdata[train_index, ]
+test_data <- newdata[-train_index, ]
+
+# Define the formula for the regression tree
+formula_motor <- motor_UPDRS ~ . - total_UPDRS - Jitter... - Jitter.RAP - Shimmer - Shimmer.APQ5 - RPDE - Shimmer.dB. - Jitter.DDP - Shimmer.DDA - Shimmer.APQ3 - Jitter.PPQ5 - RPDE
+
+# Define the control parameters for tuning
+ctrl_motor <- trainControl(method = "cv",   # 10-fold cross-validation
+                            number = 10,
+                            search = "grid")  # Use grid search for hyperparameter tuning
+
+# Define the hyperparameter grid
+hyper_grid_motor <- expand.grid(cp = seq(0.001, 0.1, by = 0.001))  # Vary the complexity parameter (cp)
+
+# Train the decision tree model with hyperparameter tuning
+tree_model_motor_tuned <- train(formula_motor,                    # Formula
+                                data = train_data,               # Training data
+                                method = "rpart",                # Decision tree method
+                                trControl = ctrl_motor,         # Control parameters
+                                tuneGrid = hyper_grid_motor)    # Hyperparameter grid
+
+# Print the best model
+print(tree_model_motor_tuned)
+
+# Visualize the tuning process
+plot(tree_model_motor_tuned)
+
+# Make predictions on the testing data
+predictions_motor_tree_tuned <- predict(tree_model_motor_tuned, test_data)
+
+# Evaluate the tuned model's performance
+rmse_tree_motor_tuned <- sqrt(mean((test_data$motor_UPDRS - predictions_motor_tree_tuned)^2))
+mae_tree_motor_tuned <- mean(abs(test_data$motor_UPDRS - predictions_motor_tree_tuned))
+mse_tree_motor_tuned <- mean((test_data$motor_UPDRS - predictions_motor_tree_tuned)^2)
+
+# Calculate R-squared
+SS_Residual_motor_tuned <- sum((test_data$motor_UPDRS - predictions_motor_tree_tuned)^2)
+SS_Total_motor_tuned <- sum((test_data$motor_UPDRS - mean(test_data$motor_UPDRS))^2)
+r_squared_motor_tuned <- 1 - (SS_Residual_motor_tuned / SS_Total_motor_tuned)
+
+cat("Tuned model performance for motor_UPDRS:\n")
+cat("RMSE:", rmse_tree_motor_tuned, "\n")
+cat("MAE:", mae_tree_motor_tuned, "\n")
+cat("MSE:", mse_tree_motor_tuned, "\n")
+cat("R-squared:", r_squared_motor_tuned, "\n")
+
+```
+
+#### The model tree seems to have significantly improved performance compared to the previous decision tree model without hyper parameter tuning. Here's a summary of the evaluation metrics for the model tree:
+
+#### RMSE for model tree for motor_UPDRS after improving model: 0.04873101  
+#### MAE for model tree for motor_UPDRS after improving model: 0.03644035  
+#### MSE for model tree for motor_UPDRS after improving model: 0.002374712  
+#### R-squared for model tree for motor_UPDRS after improving model: 0.958105 
+
+
+## 8.1 / Random Forest and ensemble model - For total_UPDRS nad motor_UPDRS 
+
+```{r}
+library(randomForest)
+library(caret)
+
+# Define function to construct ensemble model
+construct_ensemble <- function(data, formula, method, train_control) {
+  # Train the ensemble model
+  ensemble_model <- train(
+    formula, 
+    data = data, 
+    method = method, 
+    trControl = train_control
+  )
+  
+  # Return the trained ensemble model
+  return(ensemble_model)
+}
+
+# Define the formula for the Random Forest model for total_UPDRS
+formula_total_UPDRS <- total_UPDRS ~ . - motor_UPDRS - Jitter... - Jitter.Abs. - Jitter.RAP - Shimmer - Shimmer.APQ5 - Shimmer.APQ11 - RPDE - Shimmer.dB. - Jitter.DDP - Shimmer.DDA - Shimmer.APQ3 - Jitter.PPQ5
+
+# Define the formula for the Random Forest model for motor_UPDRS
+formula_motor_UPDRS <- motor_UPDRS ~ . - total_UPDRS - Jitter... - Jitter.Abs. - Jitter.RAP - Shimmer - Shimmer.APQ5 - Shimmer.APQ11 - RPDE - Shimmer.dB. - Jitter.DDP - Shimmer.DDA - Shimmer.APQ3 - Jitter.PPQ5 - RPDE
+
+# Split the data into training and testing sets
+set.seed(123)  # for reproducibility
+train_index <- sample(1:nrow(newdata), 0.8 * nrow(newdata))  # 80% for training
+train_data <- newdata[train_index, ]
+test_data <- newdata[-train_index, ]
+
+# Train control for cross-validation
+train_control_total <- trainControl(method = "cv", number = 10)  # 10-fold cross-validation
+
+# Construct the ensemble model for total_UPDRS using the function
+ensemble_model_total_UPDRS <- construct_ensemble(
+  data = train_data, 
+  formula = formula_total_UPDRS, 
+  method = "rf", 
+  train_control = train_control_total
+)
+
+# Construct the ensemble model for motor_UPDRS using the function
+ensemble_model_motor_UPDRS <- construct_ensemble(
+  data = train_data, 
+  formula = formula_motor_UPDRS, 
+  method = "rf", 
+  train_control = train_control_total
+)
+
+# Train the Random Forest model for total_UPDRS
+rf_model_total_UPDRS <- train(
+  formula_total_UPDRS, 
+  data = train_data, 
+  method = "rf", 
+  trControl = train_control_total
+)
+
+# Train the Random Forest model for motor_UPDRS
+rf_model_motor_UPDRS <- train(
+  formula_motor_UPDRS, 
+  data = train_data, 
+  method = "rf", 
+  trControl = train_control_total
+)
+
+# Make predictions using the ensemble model for total_UPDRS
+predictions_total_UPDRS <- predict(ensemble_model_total_UPDRS, test_data)
+
+# Make predictions using the ensemble model for motor_UPDRS
+predictions_motor_UPDRS <- predict(ensemble_model_motor_UPDRS, test_data)
+
+# Make predictions using the Random Forest model for total_UPDRS
+predictions_rf_total_UPDRS <- predict(rf_model_total_UPDRS, test_data)
+
+# Make predictions using the Random Forest model for motor_UPDRS
+predictions_rf_motor_UPDRS <- predict(rf_model_motor_UPDRS, test_data)
+
+# Evaluate the ensemble model's performance for total_UPDRS
+rmse_total_UPDRS <- sqrt(mean((test_data$total_UPDRS - predictions_total_UPDRS)^2))
+mae_total_UPDRS <- mean(abs(test_data$total_UPDRS - predictions_total_UPDRS))
+mse_total_UPDRS <- mean((test_data$total_UPDRS - predictions_total_UPDRS)^2)
+SS_Residual_total_UPDRS <- sum((test_data$total_UPDRS - predictions_total_UPDRS)^2)
+SS_Total_total_UPDRS <- sum((test_data$total_UPDRS - mean(test_data$total_UPDRS))^2)
+r_squared_total_UPDRS <- 1 - (SS_Residual_total_UPDRS / SS_Total_total_UPDRS)
+
+# Evaluate the ensemble model's performance for motor_UPDRS
+rmse_motor_UPDRS <- sqrt(mean((test_data$motor_UPDRS - predictions_motor_UPDRS)^2))
+mae_motor_UPDRS <- mean(abs(test_data$motor_UPDRS - predictions_motor_UPDRS))
+mse_motor_UPDRS <- mean((test_data$motor_UPDRS - predictions_motor_UPDRS)^2)
+SS_Residual_motor_UPDRS <- sum((test_data$motor_UPDRS - predictions_motor_UPDRS)^2)
+SS_Total_motor_UPDRS <- sum((test_data$motor_UPDRS - mean(test_data$motor_UPDRS))^2)
+r_squared_motor_UPDRS <- 1 - (SS_Residual_motor_UPDRS / SS_Total_motor_UPDRS)
+
+# Evaluate the Random Forest model's performance for total_UPDRS
+rmse_rf_total_UPDRS <- sqrt(mean((test_data$total_UPDRS - predictions_rf_total_UPDRS)^2))
+mae_rf_total_UPDRS <- mean(abs(test_data$total_UPDRS - predictions_rf_total_UPDRS))
+mse_rf_total_UPDRS <- mean((test_data$total_UPDRS - predictions_rf_total_UPDRS)^2)
+SS_Residual_rf_total_UPDRS <- sum((test_data$total_UPDRS - predictions_rf_total_UPDRS)^2)
+SS_Total_rf_total_UPDRS <- sum((test_data$total_UPDRS - mean(test_data$total_UPDRS))^2)
+r_squared_rf_total_UPDRS <- 1 - (SS_Residual_rf_total_UPDRS / SS_Total_rf_total_UPDRS)
+
+# Evaluate the Random Forest model's performance for motor_UPDRS
+rmse_rf_motor_UPDRS <- sqrt(mean((test_data$motor_UPDRS - predictions_rf_motor_UPDRS)^2))
+mae_rf_motor_UPDRS <- mean(abs(test_data$motor_UPDRS - predictions_rf_motor_UPDRS))
+mse_rf_motor_UPDRS <- mean((test_data$motor_UPDRS - predictions_rf_motor_UPDRS)^2)
+SS_Residual_rf_motor_UPDRS <- sum((test_data$motor_UPDRS - predictions_rf_motor_UPDRS)^2)
+SS_Total_rf_motor_UPDRS <- sum((test_data$motor_UPDRS - mean(test_data$motor_UPDRS))^2)
+r_squared_rf_motor_UPDRS <- 1 - (SS_Residual_rf_motor_UPDRS / SS_Total_rf_motor_UPDRS)
+
+# Print the evaluation metrics for the ensemble models
+cat("Evaluation metrics for the ensemble model for total_UPDRS:\n")
+cat("RMSE:", rmse_total_UPDRS, "\n")
+cat("MAE:", mae_total_UPDRS, "\n")
+cat("MSE:", mse_total_UPDRS, "\n")
+cat("R-squared:", r_squared_total_UPDRS, "\n")
+
+cat("\nEvaluation metrics for the ensemble model for motor_UPDRS:\n")
+cat("RMSE:", rmse_motor_UPDRS, "\n")
+cat("MAE:", mae_motor_UPDRS, "\n")
+cat("MSE:", mse_motor_UPDRS, "\n")
+cat("R-squared:", r_squared_motor_UPDRS, "\n")
+
+# Print the evaluation metrics for the Random Forest models
+cat("\nEvaluation metrics for the Random Forest model for total_UPDRS:\n")
+cat("RMSE:", rmse_rf_total_UPDRS, "\n")
+cat("MAE:", mae_rf_total_UPDRS, "\n")
+cat("MSE:", mse_rf_total_UPDRS, "\n")
+cat("R-squared:", r_squared_rf_total_UPDRS, "\n")
+
+cat("\nEvaluation metrics for the Random Forest model for motor_UPDRS:\n")
+cat("RMSE:", rmse_rf_motor_UPDRS, "\n")
+cat("MAE:", mae_rf_motor_UPDRS, "\n")
+cat("MSE:", mse_rf_motor_UPDRS, "\n")
+cat("R-squared:", r_squared_rf_motor_UPDRS, "\n")
+
+```
+
