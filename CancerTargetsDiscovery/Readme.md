@@ -1,14 +1,24 @@
-# Candidate Gene Analysis Across 10+ scRNA-seq Datasets
+# scRNA-seq Candidate Gene Analysis
 
-## Overview
-This R script shows an example of automating the analysis of candidate genes across multiple single-cell RNA-seq (scRNA-seq) datasets. 
-It is designed for scaling studies where you have 10 or more datasets and want to systematically compare gene expression across cell populations, clusters, or experimental conditions.
+## Part 1: Comparative Analysis of Selected Datasets (.R)
 
-## Key Features
-- Load multiple scRNA-seq datasets stored in a structured directory.  
-- Preprocess each dataset individually: normalization, variable feature selection, etc.  
-- Integrate datasets using Seurat’s **FindIntegrationAnchors** (supports batch integration to manage memory).  
-- Merge integrated data into a single Seurat object for downstream analyses.  
-- Automate candidate gene visualization across datasets and clusters.  
-- Optionally generate pseudo-bulk averages per cluster for easier comparison.  
+This repository demonstrates analysis and comparison of two scRNA-seq datasets, **GSE72056** and **GSE115978**, both profiling tumor and immune/microenvironment cell populations. The workflow includes:
+
+- Subsetting and preprocessing individual Seurat objects.  
+- Identification of cluster-specific marker genes.  
+- Cell type annotation based on top markers.  
+- Comparison of shared and unique cell populations between datasets.
+
+This approach highlights similarities and differences in tumor microenvironments and enables systematic evaluation of candidate gene expression.
+
+## Part 2: Scaling Analysis Across ≥10 scRNA-seq Datasets (candidate_gene_analysis_multi_scRNAseq_datasets.R)
+
+To handle 10 or more scRNA-seq datasets efficiently:
+
+- Store datasets in a structured directory with consistent file naming.  
+- Preprocess each dataset individually (normalization, variable feature selection).  
+- Integrate datasets in batches using Seurat’s `FindIntegrationAnchors` to reduce memory usage.  
+- Merge all integrated datasets into a single Seurat object for downstream visualization, clustering, and candidate gene analysis.  
+- Automate candidate gene expression plots and generate pseudo-bulk summaries to compare hundreds of genes across multiple datasets.
+
 
