@@ -1,0 +1,321 @@
+---
+title: "KedarProject_LiuLab_UTSW"
+output: html_document
+date: "2025-11-25"
+---
+
+```{r}
+# Load necessary libraries
+library(Seurat)
+library(dplyr)
+library(ggplot2)
+library(pheatmap)
+library(dplyr)
+```
+
+```{r}
+# 1️⃣ Read the data for GSE72056
+df_72056 <- read.table("/Users/kedarjoshi/Downloads/GSE72056.txt", 
+                        header = TRUE, sep = "\t", stringsAsFactors = FALSE)
+
+# 2️⃣ Extract metadata (first 3 rows)
+metadata_72056 <- df_72056[1:3, ]
+rownames(metadata_72056) <- metadata_72056$Cell
+metadata_72056 <- metadata_72056[, -1]  # remove "Cell" column
+
+
+malignant_72056 <- as.factor(unlist(metadata_72056["malignant(1=no,2=yes,0=unresolved)", ]))
+celltype_72056  <- as.factor(unlist(metadata_72056["non-malignant cell type (1=T,2=B,3=Macro.4=Endo.,5=CAF;6=NK)", ]))
+tumor_72056     <- unlist(metadata_72056["tumor", ])
+
+
+# 3️⃣ Extract gene expression matrix (all rows after metadata)
+expr_df <- df_72056[-(1:3), ]
+# Handle duplicate genes by summing duplicates
+expr_numeric <- as.data.frame(lapply(expr_df[, -1], as.numeric))
+expr_numeric$Gene <- expr_df$Cell
+
+```
+
+```{r}
+### The below steps have been completed on cluster due to space issue in local system.
+### The completed expr_matrix is saved as a csv from cluster and then read into local for quick analysis.
+
+# Sum duplicates
+expr_agg <- expr_numeric %>%
+  group_by(Gene) %>%
+  summarise(across(where(is.numeric), sum), .groups = "drop")
+
+# Convert to data.frame
+expr_agg <- as.data.frame(expr_agg)
+# Set rownames safely
+rownames(expr_agg) <- expr_agg$Gene
+# Remove the redundant Gene column
+expr_agg <- expr_agg[, -1]
+# Convert to numeric matrix for Seurat
+expr_matrix <- as.matrix(expr_agg)
+
+# 4️⃣ Filter candidate genes
+genes_to_keep <- c("CASKIN2","EMC9","PDIK1L","DBNDD2", "FAM171A2")
+expr_final <- expr_agg[rownames(expr_agg) %in% genes_to_keep, ]
+
+# Save expression matrix
+write.csv(expr_matrix, "/home/joshi.ked/expr_matrix.csv", row.names = TRUE)
+
+### Cluster work completed, now the below chunk is run locally.
+```
+
+```{r}
+# Load expression matrix GSE72056
+expr_matrix_72056 <- read.csv("/Users/kedarjoshi/Downloads/expr_matrix.csv", row.names = 1)
+expr_matrix_72056 <- as.matrix(expr_matrix_72056)  # make sure it's numeric matrix
+
+```
+
+```{r}
+# Load expression matrix GSE115978
+
+expr_matrix_115978 <- read.csv("/Users/kedarjoshi/Downloads/GSE115978_counts.csv", row.names = 1, check.names = FALSE)
+expr_matrix_115978 <- as.matrix(expr_matrix_115978)
+mode(expr_matrix_115978) <- "numeric"
+
+# ------------------------------
+# Load metadata table
+# ------------------------------
+meta115978 <- read.csv("/Users/kedarjoshi/Downloads/GSE115978_cell.annotations.csv",
+                       stringsAsFactors = FALSE)
+
+# Match metadata rows to expression matrix columns
+meta115978 <- meta115978[ match(colnames(expr_matrix_115978), meta115978$cells), ]
+
+rownames(meta115978) <- meta115978$cells
+meta115978 <- meta115978[, -1]   # remove "cells" col since it’s rownames
+```
+
+```{r}
+# ------------------------------
+# Create Seurat object for GSE72056
+# ------------------------------
+meta72056 <- data.frame(
+  Malignant = malignant_72056,
+  CellType  = celltype_72056,
+  Tumor     = tumor_72056,
+  row.names = colnames(expr_matrix_72056)
+)
+
+seurat_72056 <- CreateSeuratObject(counts = expr_matrix_72056,
+                                   meta.data = meta72056)
+
+seurat_72056$dataset <- "GSE72056"
+```
+
+
+```{r}
+# ------------------------------
+# Create Seurat object for GSE115978
+# ------------------------------
+seurat_115978 <- CreateSeuratObject(counts = expr_matrix_115978, meta.data = meta115978)
+seurat_115978$dataset <- "GSE115978"
+
+```
+
+
+```{R}
+###########################################
+# PART 3 — NORMALIZATION + INTEGRATION PREP
+###########################################
+
+# Normalize & find variable genes (recommended for Smart-seq2)
+seurat_72056 <- NormalizeData(seurat_72056)
+seurat_72056 <- FindVariableFeatures(seurat_72056)
+
+seurat_115978 <- NormalizeData(seurat_115978)
+seurat_115978 <- FindVariableFeatures(seurat_115978)
+
+# Store in a list
+obj_list <- list(seurat_72056, seurat_115978)
+
+
+```
+
+
+```{r}
+###########################################
+# PART 4 — INTEGRATION (CCA-based)
+###########################################
+
+anchors <- FindIntegrationAnchors(
+  object.list = obj_list,
+  dims = 1:30
+)
+
+combined <- IntegrateData(anchorset = anchors)
+
+# Set integrated as default assay
+DefaultAssay(combined) <- "integrated"
+
+```
+
+```{r}
+###########################################
+# PART 5 — DIMENSION REDUCTION + CLUSTERING
+###########################################
+
+combined <- ScaleData(combined)
+combined <- RunPCA(combined)
+combined <- RunUMAP(combined, dims = 1:15)
+combined <- FindNeighbors(combined, dims = 1:15)
+combined <- FindClusters(combined)
+
+```
+
+```{r}
+# Compute average expression per cluster in RNA assay
+avg_expr <- AverageExpression(combined, assays = "RNA", features = genes_to_keep, group.by = "dataset")
+avg_expr$RNA
+
+# plot the expression in form of a pheatmap
+pheatmap(avg_expr$RNA,
+         cluster_rows = TRUE,     # Cluster genes
+         cluster_cols = TRUE,     # Cluster datasets (if more than 2)
+         display_numbers = TRUE,  # Optional: show values
+         main = "Candidate Gene Expression Across Datasets")
+```
+
+
+```{r}
+# Split by dataset
+seurat_list <- SplitObject(combined, split.by = "dataset")
+
+# For each dataset, find cluster markers in RNA assay
+markers_list <- lapply(seurat_list, function(obj) {
+  DefaultAssay(obj) <- "RNA"
+  Idents(obj) <- "seurat_clusters"
+  FindAllMarkers(obj, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+})
+
+# Access markers for each dataset
+markers_72056  <- markers_list[["GSE72056"]]
+markers_115978 <- markers_list[["GSE115978"]]
+```
+
+
+```{r}
+filtered_markers_72056 <- markers_72056 %>%
+  filter(p_val_adj < 0.05,        # statistically significant
+         avg_log2FC > 0.5,        # enriched in cluster
+         pct.1 > 0.25)            # expressed in ≥25% of cluster cells
+
+top_markers_72056 <- filtered_markers_72056 %>%
+  group_by(cluster) %>%
+  slice_max(order_by = avg_log2FC, n = 5) %>%  # top 5 per cluster
+  ungroup()
+
+filtered_markers_115978 <- markers_115978 %>%
+  filter(p_val_adj < 0.05,        # statistically significant
+         avg_log2FC > 0.5,        # enriched in cluster
+         pct.1 > 0.25)            # expressed in ≥25% of cluster cells
+
+top_markers_115978 <- filtered_markers_115978 %>%
+  group_by(cluster) %>%
+  slice_max(order_by = avg_log2FC, n = 5) %>%  # top 5 per cluster
+  ungroup()
+```
+
+```{r}
+# Based on manual review of the top markers filtered in the above chunk we annotate the clusters
+
+cluster2celltype_72056 <- c(
+  "0"="T_cells_helper", "1"="T_cells_helper", "2"="B_cells",
+  "3"="T_cells_cytotoxic", "4"="Tumor", "5"="T_cells_regulatory",
+  "6"="Tumor_proliferating", "7"="Monocytes_Macrophages", "8"="Fibroblasts",
+  "9"="Endothelial", "10"="NK_cells", "11"="Proliferating",
+  "12"="Tumor", "13"="Fibroblasts", "14"="Tumor", "15"="B_cells_plasma",
+  "16"="B_cells_naive", "17"="Fibroblasts", "18"="Tumor",
+  "19"="Endothelial", "20"="Endothelial", "22"="Oligodendrocytes",
+  "23"="Tumor", "24"="Fibroblasts"
+)
+
+cluster2celltype_115978 <- c(
+  "0"="T_cells_helper", "1"="T_cells_helper", "2"="B_cells",
+  "3"="T_cells_cytotoxic", "4"="Tumor", "5"="T_cells_regulatory",
+  "6"="Tumor_proliferating", "7"="Monocytes_Macrophages", "8"="Fibroblasts",
+  "9"="Endothelial", "10"="NK_cells", "11"="Proliferating",
+  "12"="Tumor", "13"="Fibroblasts", "14"="Tumor", "15"="B_cells_plasma",
+  "16"="B_cells_naive", "17"="Fibroblasts", "18"="Tumor",
+  "19"="Endothelial", "20"="Endothelial", "21"="Tumor",
+  "22"="Fibroblasts", "23"="Tumor", "24"="Fibroblasts"
+)
+
+```
+
+
+```{r}
+# Function to map clusters to cell types
+map_clusters_manual <- function(seurat_obj, mapping) {
+  Idents(seurat_obj) <- "seurat_clusters"
+  clusters <- as.character(Idents(seurat_obj))
+  celltype <- mapping[clusters]
+  celltype[is.na(celltype)] <- clusters[is.na(celltype)]
+  names(celltype) <- names(clusters)
+  seurat_obj[["celltype"]] <- factor(celltype)
+  Idents(seurat_obj) <- "celltype"
+  return(seurat_obj)
+}
+
+# Apply mapping
+seurat_list[["GSE72056"]] <- map_clusters_manual(seurat_list[["GSE72056"]], cluster2celltype_72056)
+seurat_list[["GSE115978"]] <- map_clusters_manual(seurat_list[["GSE115978"]], cluster2celltype_115978)
+
+```
+
+```{r}
+# Plot DimPlot once per dataset
+DimPlot(seurat_list[["GSE72056"]], reduction = "umap", label = FALSE) +
+  ggtitle("GSE72056 - Cell Types")
+
+DimPlot(seurat_list[["GSE115978"]], reduction = "umap", label = FALSE) +
+  ggtitle("GSE115978 - Cell Types")
+
+
+```
+
+
+```{r}
+# Make sure RNA assay is active
+DefaultAssay(seurat_list[["GSE72056"]]) <- "RNA"
+DefaultAssay(seurat_list[["GSE115978"]]) <- "RNA"
+
+genes_to_keep <- c("CASKIN2","EMC9","PDIK1L","DBNDD2", "FAM171A2", "C1orf174", "LOC124903857", "TMEM161B", "ZNF808")
+
+for (gene in genes_to_plot) {
+  
+  # GSE72056
+  if (gene %in% rownames(seurat_list[["GSE72056"]])) {
+    print(
+      FeaturePlot(
+        seurat_list[["GSE72056"]],
+        features = gene,
+        reduction = "umap",
+        cols = c("lightgrey", "blue")
+      ) + ggtitle(paste(gene, "GSE72056 - Expression"))
+    )
+  } else {
+    message("Gene not found in GSE72056: ", gene)
+  }
+  
+  # GSE115978
+  if (gene %in% rownames(seurat_list[["GSE115978"]])) {
+    print(
+      FeaturePlot(
+        seurat_list[["GSE115978"]],
+        features = gene,
+        reduction = "umap",
+        cols = c("lightgrey", "blue")
+      ) + ggtitle(paste(gene, "GSE115978 - Expression"))
+    )
+  } else {
+    message("Gene not found in GSE115978: ", gene)
+  }
+}
+```
