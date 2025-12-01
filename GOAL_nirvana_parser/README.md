@@ -1,78 +1,33 @@
+# GOAL Nirvana Annotation Parser
 
-Only the **positions** section of the JSON is used.  
-Each position entry corresponds to a variant present in the unannotated VCF.
+### GitHub README File
+A lightweight toolkit for converting GOAL DRAGEN Nirvana JSON output into a clean TSV with correct transcript selection.
 
----
+## Description
+Parses the `positions` block of Nirvana JSON, keeps only **PASS** variants, selects a single transcript per variant (**MANE-first**), and outputs a review-ready TSV.
 
-## Transcript Selection
+## Features
+- Parse Nirvana JSON → TSV
+- Filter to **PASS** variants
+- Split multi-variant positions
+- Transcript selection:
+  - **Primary:** MANE Select
+  - **Fallback:** `mRNA` + `isCanonical == true`
+- Outputs variant, transcript, ClinVar, population, and COSMIC fields
 
-### Primary method
-- Use the latest **MANE Select** RefSeq transcripts  
-- Validate Nirvana’s `isManeSelect` flag against the MANE GTF
-
-### Fallback logic
-Used when MANE is not available:
-
-- Prefer transcripts where:  
-  - `biotype == "mRNA"`  
-  - `isCanonical == true`  
-
-This ensures a single, deterministic transcript is selected for each variant.
-
----
+## Input
+- Nirvana JSON file (`*.vcf.annotated.json.gz`) from GOAL DRAGEN
 
 ## Output
 
-A TSV file where each row represents a variant.
-
-### Variant fields
-- Chromosome  
-- Position  
-- refAllele  
-- altAllele(s)  
-- Filters  
-- mappingQuality  
-- cytogeneticBand  
-- genotype  
-- variantFrequencies  
-- totalDepth  
-- alleleDepths  
-- somaticQuality  
-- variantType  
-- hgvsg  
-
-### ClinVar fields
-- ID  
-- significance  
-- reviewStatus  
-- Only entries matching the variant ref/alt are included  
-- Multiple entries are combined with a delimiter  
-
-### Population frequencies
-- dbsnp ID  
-- globalMinorAlleleFrequency (if matching altAllele)  
-- gnomad allAF  
-- oneKg allAF  
-- topmed allAF  
-
-### COSMIC
-- COSMIC IDs (if any)
-
-### Transcript fields
-- Transcript name (RefSeq)  
-- biotype  
-- exon or intron notation  
-- hgnc  
-- consequence  
-- hgvsc  
-- hgvsp (if present)
-
----
+TSV with key fields:
+- **Variant:** chr, pos, ref/alt, filters, depth, genotype
+- **Transcript:** transcript name, consequence, hgvsc/hgvsp
+- **ClinVar:** ID, significance, reviewStatus
+- **Population:** gnomad/1000g/topmed AFs
+- **COSMIC:** IDs
 
 ## Validation
 
-Validation should include:
-
-- Unit tests for parsing and transcript selection  
-- Simple and complex representative variants  
-- Manual spot-checking to confirm correctness
+- Unit tests for parser and transcript logic
+- Manual spot-checks of representative variants
