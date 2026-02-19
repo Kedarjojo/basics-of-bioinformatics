@@ -1,0 +1,518 @@
+---
+title: "Kedar_TowerLab"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+date: "2026-01-20"
+---
+
+```{r}
+# Load packages
+
+library(Seurat)
+library(dplyr)
+library(Matrix)
+library(tidyr)
+library(biomaRt)
+library(nichenetr)
+library(ggplot2)
+library(pheatmap)
+library(latexpdf)
+
+# Load NicheNet models
+
+nichenet_ligand_target_matrix <- readRDS("C:/Users/saniy/Downloads/nichenet_models/ligand_target_matrix.rds")
+nichenet_lr_network <- readRDS("C:/Users/saniy/Downloads/nichenet_models/lr_network.rds")
+weighted_networks <- readRDS("C:/Users/saniy/Downloads/nichenet_models/weighted_networks.rds")
+
+```
+
+
+
+```{r}
+# 1. Function to read 10X GSM
+
+read_gsm_10x <- function(matrix_file, feature_file, barcode_file, project_name) {
+  mat <- readMM(matrix_file)
+  features <- read.delim(feature_file, header = FALSE)
+  barcodes <- read.delim(barcode_file, header = FALSE)
+  
+  rownames(mat) <- make.unique(features$V2)  # gene symbols
+  colnames(mat) <- barcodes$V1
+  
+  seurat_obj <- CreateSeuratObject(counts = mat, project = project_name)
+  seurat_obj[["ensembl_id"]] <- features$V1  # optional
+  return(seurat_obj)
+}
+
+```
+
+
+```{r}
+# 2. Load datasets
+
+bm <- read_gsm_10x(
+  "C:/Users/saniy/Downloads/GSE221134_RAW/GSM6845846_BM_matrix.mtx.gz",
+  "C:/Users/saniy/Downloads/GSE221134_RAW/GSM6845846_BM_features.tsv.gz",
+  "C:/Users/saniy/Downloads/GSE221134_RAW/GSM6845846_BM_barcodes.tsv.gz",
+  "BM"
+)
+bm$compartment <- "BM"
+
+bl <- read_gsm_10x(
+  "C:/Users/saniy/Downloads/GSE221134_RAW/GSM6845847_BL_matrix.mtx.gz",
+  "C:/Users/saniy/Downloads/GSE221134_RAW/GSM6845847_BL_features.tsv.gz",
+  "C:/Users/saniy/Downloads/GSE221134_RAW/GSM6845847_BL_barcodes.tsv.gz",
+  "Blood"
+)
+bl$compartment <- "Blood"
+
+ho <- read_gsm_10x(
+  "C:/Users/saniy/Downloads/GSE221134_RAW/GSM6845848_HO_matrix.mtx.gz",
+  "C:/Users/saniy/Downloads/GSE221134_RAW/GSM6845848_HO_features.tsv.gz",
+  "C:/Users/saniy/Downloads/GSE221134_RAW/GSM6845848_HO_barcodes.tsv.gz",
+  "Injury"
+)
+ho$compartment <- "Injury"
+
+```
+
+
+```{r}
+# 3. SCTransform normalization
+
+bm <- SCTransform(bm, verbose = FALSE)
+bl <- SCTransform(bl, verbose = FALSE)
+ho <- SCTransform(ho, verbose = FALSE)
+```
+
+
+```{r}
+# 4. PCA, clustering, UMAP
+
+datasets <- list(BM = bm, Blood = bl, Injury = ho)
+for (name in names(datasets)) {
+  obj <- datasets[[name]]
+  obj <- RunPCA(obj, verbose = FALSE)
+  obj <- FindNeighbors(obj, dims = 1:30)
+  obj <- FindClusters(obj, resolution = 0.5)
+  obj <- RunUMAP(obj, dims = 1:30)
+  datasets[[name]] <- obj
+}
+bm <- datasets$BM; bl <- datasets$Blood; ho <- datasets$Injury
+
+```
+
+```{r}
+# 5. Find cluster markers
+
+find_markers_upper <- function(obj) {
+  markers <- FindAllMarkers(obj, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+  markers <- markers %>%
+    mutate(cluster = as.character(cluster),
+           gene = toupper(gene))
+  return(markers)
+}
+
+bm.markers <- find_markers_upper(bm)
+bl.markers <- find_markers_upper(bl)
+ho.markers <- find_markers_upper(ho)
+```
+
+
+```{r}
+# 6. Rename Idents for clarity
+
+# BM
+Idents(bm) <- bm$seurat_clusters
+bm <- RenameIdents(bm,
+                   `0`="Neutrophil_inflam",`1`="Neutrophil",`2`="Neutrophil_prog",`3`="Neutrophil_early",
+                   `4`="Macrophage", `5`="Cycling_cells",`6`="Myeloid_activated",`7`="HSPC",`8`="Myeloid",
+                   `9`="B_cell",`10`="pDC")
+bm$celltype <- Idents(bm)
+
+# BL
+Idents(bl) <- bl$seurat_clusters
+bl <- RenameIdents(bl,
+                   `0`="Neutrophil",`1`="B_cell",`2`="Monocyte_Macrophage", `3`="T_cell_CD4",
+                   `4`="T_cell_CD8", `5`="T_reg",`6`="NK_cell",`7`="Inflammatory_Myeloid",
+                   `8`="Myeloid_APC_like",`9`="Mast_cell",`10`="Cycling_lymphoid",`11` = "B_cell")
+bl$celltype <- Idents(bl)
+
+# HO
+Idents(ho) <- ho$seurat_clusters
+ho <- RenameIdents(ho,
+                   `0`="Macrophage_resident",`1`="Fibroblast",`2`="Myeloid_APC_like",
+                   `3`="Neutrophil", `4`="Macrophage_APC",`5`="High_mito_macrophage",
+                   `6`="IFN_activated_myeloid",`7`="Endothelial",`8`="Dendritic_cell",
+                   `9`="Epithelial_like",`10`="IFN_response",`11`="Proliferating_cells",
+                   `12`="Smooth_muscle",`13`="Mesenchymal",`14`="Schwann_cell")
+ho$celltype <- Idents(ho)
+
+```
+
+
+```{r}
+# 6. UMAP visualization
+
+DimPlot(bm, reduction = "umap", group.by = "celltype", label = TRUE) +
+  ggtitle("BM: Annotated Cell Types")
+
+DimPlot(bl, reduction = "umap", group.by = "celltype", label = TRUE) +
+  ggtitle("Blood: Annotated Cell Types")
+
+DimPlot(ho, reduction = "umap", group.by = "celltype", label = TRUE) +
+  ggtitle("Injury: Annotated Cell Types")
+
+```
+
+
+```{r}
+# 7. FeaturePlots for known markers
+
+neutrophil_markers <- c("S100a8", "S100a9", "Ly6G", "Ctss", "Fcgr3b")
+macrophage_markers <- c("C1qa", "C1qb", "C1qc", "Lyz2", "Ctsd")
+
+FeaturePlot(bm, features = neutrophil_markers, reduction = "umap", ncol = 3)
+FeaturePlot(bm, features = macrophage_markers, reduction = "umap", ncol = 3)
+
+FeaturePlot(bl, features = neutrophil_markers, reduction = "umap", ncol = 3)
+FeaturePlot(bl, features = macrophage_markers, reduction = "umap", ncol = 3)
+
+FeaturePlot(ho, features = neutrophil_markers, reduction = "umap", ncol = 3)
+FeaturePlot(ho, features = macrophage_markers, reduction = "umap", ncol = 3)
+```
+
+
+```{r}
+#7a. Dot Plot Vizualisations
+
+DotPlot(
+  bm,
+  features = c(neutrophil_markers, macrophage_markers),
+  group.by = "celltype"
+) + RotatedAxis() +
+  ggtitle("BM: Canonical Marker Expression")
+
+DotPlot(
+  bl,
+  features = c(neutrophil_markers, macrophage_markers),
+  group.by = "celltype"
+) + RotatedAxis() +
+  ggtitle("Blood: Canonical Marker Expression")
+
+DotPlot(
+  ho,
+  features = c(neutrophil_markers, macrophage_markers),
+  group.by = "celltype"
+) + RotatedAxis() +
+  ggtitle("Injury: Canonical Marker Expression")
+```
+
+```{r}
+# 8. Broad cluster labels for NicheNet
+
+bm$celltype_broad <- ifelse(bm$celltype %in% c("Neutrophil_inflam","Neutrophil_prog","Neutrophil_early"), "Neutrophil",
+                            ifelse(bm$celltype %in% c("Macrophage","Myeloid_activated"), "Macrophage", bm$celltype))
+bl$celltype_broad <- ifelse(bl$celltype %in% c("Neutrophil"), "Neutrophil",
+                            ifelse(bl$celltype %in% c("Monocyte_Macrophage","Inflammatory_Myeloid","Myeloid_APC_like"), "Macrophage", bl$celltype))
+ho$celltype_broad <- ifelse(ho$celltype %in% c("Neutrophil"), "Neutrophil",
+                            ifelse(ho$celltype %in% c("Macrophage_resident","Macrophage_APC","High_mito_macrophage","IFN_activated_myeloid"), "Macrophage", ho$celltype))
+```
+
+
+```{r}
+# 9. Subset only relevant clusters 
+Idents(bm) <- bm$celltype_broad 
+Idents(bl) <- bl$celltype_broad 
+Idents(ho) <- ho$celltype_broad 
+
+# BM
+bm_nm <- subset(bm, idents = c("Neutrophil", "Macrophage"), invert = FALSE) 
+Idents(bm_nm) <- bm_nm$celltype_broad 
+
+# BL 
+bl_nm <- subset(bl, idents = c("Neutrophil", "Macrophage"), invert = FALSE) 
+Idents(bl_nm) <- bl_nm$celltype_broad 
+
+# HO 
+ho_nm <- subset(ho, idents = c("Neutrophil", "Macrophage"), invert = FALSE) 
+Idents(ho_nm) <- ho_nm$celltype_broad
+```
+
+```{R}
+# 10. Add broad cluster labels to markers tables
+
+# BM markers
+bm.markers$cluster_broad <- as.character(bm.markers$cluster)
+bm.markers$cluster_broad[bm.markers$cluster_broad %in% c("4", "6")] <- "Macrophage"
+bm.markers$cluster_broad[bm.markers$cluster_broad %in% c("0","1","2","3")] <- "Neutrophil"
+
+# BL markers
+bl.markers$cluster_broad <- as.character(bl.markers$cluster)
+bl.markers$cluster_broad[bl.markers$cluster_broad %in% c("2","7","8")] <- "Macrophage"
+bl.markers$cluster_broad[bl.markers$cluster_broad %in% c("0")] <- "Neutrophil"
+
+# HO markers
+ho.markers$cluster_broad <- as.character(ho.markers$cluster)
+ho.markers$cluster_broad[ho.markers$cluster_broad %in% c("0","4","5","6")] <- "Macrophage"
+ho.markers$cluster_broad[ho.markers$cluster_broad %in% c("3")] <- "Neutrophil"
+```
+
+
+
+```{r}
+# 11. Load mouse to human mapping
+
+
+## Since our dataset has mouse genes I used the ensembl bioMart website to convert these into human orthologs along with the ENSMUG ids to be used for NicheNet analysis.
+
+mouse2human_table <- read.delim(
+  "C:/Users/saniy/Downloads/nichenet_models/mouse2human.txt",
+  header = TRUE, stringsAsFactors = FALSE
+)
+
+mouse <- useMart("ensembl", dataset = "mmusculus_gene_ensembl")
+mouse_symbols <- getBM(
+  attributes = c("ensembl_gene_id", "mgi_symbol"),
+  filters = "ensembl_gene_id",
+  values = mouse2human_table$Gene.stable.ID,
+  mart = mouse
+)
+
+mouse2human_symbols <- merge(
+  mouse2human_table, mouse_symbols,
+  by.x = "Gene.stable.ID", by.y = "ensembl_gene_id"
+)
+
+mouse2human_map <- setNames(mouse2human_symbols$Human.gene.name, mouse2human_symbols$mgi_symbol)
+mouse2human_map <- mouse2human_map[!duplicated(names(mouse2human_map))]
+```
+
+
+```{r}
+# 12. Function to create humanized SCT assay
+
+create_human_assay <- function(seurat_obj, assay_name = "SCT_human", map_vector) {
+  counts_mat <- GetAssayData(seurat_obj, assay = "SCT", layer = "counts")
+  counts_mat <- as(counts_mat, "dgCMatrix")
+  keep_genes <- intersect(rownames(counts_mat), names(map_vector))
+  counts_mat_sub <- counts_mat[keep_genes, , drop = FALSE]
+  rownames(counts_mat_sub) <- map_vector[keep_genes]
+  counts_mat_sub <- counts_mat_sub[rownames(counts_mat_sub) != "", , drop = FALSE]
+  counts_mat_sub <- counts_mat_sub[!duplicated(rownames(counts_mat_sub)), , drop = FALSE]
+  seurat_obj[[assay_name]] <- CreateAssayObject(counts = counts_mat_sub)
+  DefaultAssay(seurat_obj) <- assay_name
+  return(seurat_obj)
+}
+
+bm_nm <- create_human_assay(bm_nm, "SCT_human", mouse2human_map)
+bl_nm <- create_human_assay(bl_nm, "SCT_human", mouse2human_map)
+ho_nm <- create_human_assay(ho_nm, "SCT_human", mouse2human_map)
+```
+
+
+```{R}
+# 13.Function for doing cell-cell communication analysis using NicheNet 
+
+run_nichenet <- function(
+    seurat_obj,
+    sender_clusters,
+    receiver_cluster,
+    markers_table,
+    top_n = 50,
+    use_receptor_filter = FALSE  # keep all ligands by default
+) {
+  
+  cat("\n=== Running Flexible NicheNet for receiver cluster:", receiver_cluster, "===\n")
+  
+  # Identify sender and receiver cells
+  sender_cells <- WhichCells(seurat_obj, idents = sender_clusters)
+  receiver_cells <- WhichCells(seurat_obj, idents = receiver_cluster)
+  
+  cat("Sender cells:", length(sender_cells),
+      "| Receiver cells:", length(receiver_cells), "\n")
+  
+  if(length(sender_cells) == 0 | length(receiver_cells) == 0) {
+    stop("No cells found for sender or receiver clusters.")
+  }
+  expr_mat <- GetAssayData(seurat_obj, assay = DefaultAssay(seurat_obj), layer = "counts")
+  expressed_genes_sender <- rownames(expr_mat)[Matrix::rowMeans(expr_mat[, sender_cells, drop = FALSE] > 0) > 0]
+  expressed_genes_receiver <- rownames(expr_mat)[Matrix::rowMeans(expr_mat[, receiver_cells, drop = FALSE] > 0) > 0]
+  
+  cat("Expressed genes — sender:", length(expressed_genes_sender),
+      "| receiver:", length(expressed_genes_receiver), "\n")
+  
+  # Ligand–receptor pairs
+  if(use_receptor_filter) {
+    potential_ligands <- nichenet_lr_network %>%
+      dplyr::filter(from %in% expressed_genes_sender,
+                    to %in% expressed_genes_receiver) %>%
+      dplyr::select(from, to)
+  } else {
+    potential_ligands <- nichenet_lr_network %>%
+      dplyr::filter(from %in% expressed_genes_sender) %>%
+      dplyr::select(from, to)
+  }
+  
+  cat("Total ligand-receptor pairs for sender clusters:", nrow(potential_ligands), "\n")
+  
+  if(nrow(potential_ligands) == 0) {
+    warning("No ligand-receptor pairs found. Returning NULL.")
+    return(NULL)
+  }
+  all_markers <- markers_table %>%
+    dplyr::filter(cluster_broad == receiver_cluster) %>%  # use cluster_broad instead of cluster
+    dplyr::pull(gene)
+  geneset_receiver <- intersect(all_markers, expressed_genes_receiver)
+  
+  if(length(geneset_receiver) > top_n) {
+    geneset_receiver <- geneset_receiver[1:top_n]
+  }
+  
+  cat("Receiver gene set size (after filtering to expressed):", length(geneset_receiver), "\n")
+  
+  # Ligand activity prediction (only if >=2 genes)
+  if(length(geneset_receiver) < 2) {
+    warning("Receiver gene set too small for ligand activity prediction. Skipping AUROC.")
+    ligand_activities <- NULL
+    top_ligands <- NULL
+  } else {
+    ligand_activities <- predict_ligand_activities(
+      geneset = geneset_receiver,
+      background_expressed_genes = expressed_genes_receiver,
+      ligand_target_matrix = nichenet_ligand_target_matrix,
+      potential_ligands = unique(potential_ligands$from)
+    )
+    
+    top_ligands <- ligand_activities %>%
+      dplyr::arrange(desc(pearson)) %>%
+      dplyr::rename(ligand = test_ligand) %>%
+      dplyr::select(ligand, pearson) %>%
+      head(10)
+    
+    cat("Top ligands:\n")
+    print(top_ligands)
+  }
+  
+  # Return full results
+  return(list(
+    expressed_genes_sender = expressed_genes_sender,
+    expressed_genes_receiver = expressed_genes_receiver,
+    potential_ligand_pairs = potential_ligands,
+    geneset_receiver = geneset_receiver,
+    ligand_activities = ligand_activities,
+    top_ligands = top_ligands
+  ))
+}
+
+```
+
+
+```{R}
+# 14. Run NicheNet with broad clusters
+
+bm_results_safe <- run_nichenet(
+  seurat_obj = bm_nm,
+  sender_clusters = "Neutrophil",
+  receiver_cluster = "Macrophage",
+  markers_table = bm.markers,
+  top_n = 20,
+  use_receptor_filter = FALSE
+)
+
+bl_results_safe <- run_nichenet(
+  seurat_obj = bl_nm,
+  sender_clusters = "Neutrophil",
+  receiver_cluster = "Macrophage",
+  markers_table = bl.markers,
+  top_n = 20,
+  use_receptor_filter = FALSE
+)
+
+ho_results_safe <- run_nichenet(
+  seurat_obj = ho_nm,
+  sender_clusters = "Neutrophil",
+  receiver_cluster = "Macrophage",
+  markers_table = ho.markers,
+  top_n = 20,
+  use_receptor_filter = FALSE
+)
+```
+
+
+```{r}
+# 15. Adding Tissue info to the results 
+
+bm_ligands <- bm_results_safe$top_ligands %>% mutate(Tissue = "BM") 
+bl_ligands <- bl_results_safe$top_ligands %>% mutate(Tissue = "Blood") 
+ho_ligands <- ho_results_safe$top_ligands %>% mutate(Tissue = "Injury") 
+
+all_ligands <- bind_rows(bm_ligands, bl_ligands, ho_ligands) 
+
+ligand_summary <- all_ligands %>% 
+  dplyr::select(Tissue, ligand, pearson) %>% 
+  tidyr::pivot_wider(names_from = Tissue, values_from = pearson, values_fill = 0) %>%
+  dplyr::arrange(desc(BM)) 
+
+ligand_summary
+```
+
+```{r}
+# 16. Analysis fo compartment specific ligands
+
+# Shared ligands (present in all compartments)
+#shared_ligands <- ligand_summary %>% filter(Ligand_presence == 3)
+
+# Compartment-specific ligands
+bm_specific <- ligand_summary %>% filter(BM > 0 & Blood == 0 & Injury == 0)
+blood_specific <- ligand_summary %>% filter(Blood > 0 & BM == 0 & Injury == 0)
+injury_specific <- ligand_summary %>% filter(Injury > 0 & BM == 0 & Blood == 0)
+```
+
+
+```{r}
+# 17. Pheatmap of ligand activity across compartments
+ligand_mat <- as.matrix(ligand_summary[,2:4])
+rownames(ligand_mat) <- ligand_summary$ligand
+
+pheatmap(ligand_mat, cluster_rows = TRUE, cluster_cols = FALSE,
+         main = "Neutrophil → Macrophage Ligand Activities Across Compartments")
+```
+
+
+```{r}
+#18. Ranking the ligands across compartments for better vizualisation
+
+ligand_summary_rank <- all_ligands %>%
+  group_by(Tissue) %>%
+  arrange(desc(pearson)) %>%
+  mutate(rank = row_number()) %>%
+  ungroup()
+
+top_ligands_all <- ligand_summary_rank %>%
+  group_by(ligand) %>%
+  filter(any(rank <= 10)) %>%
+  ungroup()
+
+# Plot rank of each ligand across tissues
+ggplot(top_ligands_all, aes(x = Tissue, y = rank, group = ligand, color = ligand)) +
+  geom_line(size = 1) +
+  geom_point(size = 3) +
+  scale_y_reverse(breaks = 1:10) +  # Rank 1 on top
+  theme_minimal(base_size = 14) +
+  labs(
+    title = "Neutrophil → Macrophage ligand activity across compartments",
+    y = "Rank (top ligands)",
+    x = "Tissue",
+    color = "Ligand"
+  ) +
+  theme(
+    legend.position = "right",
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
+
+
+
