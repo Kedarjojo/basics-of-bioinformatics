@@ -166,14 +166,14 @@
             <ul>
               <li>High EMC9 group shows better trend (HR ~0.25), but p-values not significant (log-rank p ~0.08, p(HR) ~0.10).</li>
               <li>Small sample size limits confidence (23 high vs 28 low).</li>
-                <img src="images/DLBC2.png" alt="DBNDD2 expression plot" width="600">
+                <img src="images/DLBC2.png" alt="DBNDD2 expression plot" width="300">
             </ul>
           </li>
           <li>THYM:
             <ul>
               <li>High EMC9 trend toward better survival (HR ~0.42), but log-rank p ~0.23, p(HR) ~0.24; not statistically significant.</li>
               <li>EMC9 not a reliable prognostic marker in thymoma.</li>
-                <img src="images/EMC9.png" alt="DBNDD2 expression plot" width="600">
+                <img src="images/EMC9.png" alt="DBNDD2 expression plot" width="300">
             </ul>
           </li>
         </ul>
@@ -182,7 +182,7 @@
         <ul>
           <li>Pan-cancer survival: High DBNDD2 expression = worse outcomes.</li>
           <li>Red curve drops faster than blue; p-values extremely small; large sample size = reliable result.</li>
-            <img src="images/DBNDD2_survival.png" alt="DBNDD2 expression plot" width="600">
+            <img src="images/DBNDD2_survival.png" alt="DBNDD2 expression plot" width="300">
         </ul>
       </li>
     </ul>
