@@ -75,28 +75,120 @@
 <p>Across all nine genes, functional annotation was sparse. HPA data and GEPIA2 analyses revealed potential cancer relevance:</p>
 
 <ul>
-<li><strong>EMC9:</strong> Low tissue specificity; modest RNA across normal tissues; protein moderate in colorectal, thyroid, prostate, and skin cancers. Discrepancies between RNA and protein suggest transcriptional activity with limited protein detection.</li>
-<li><strong>FAM171A2:</strong> Highest in cerebral cortex and epididymis; mostly weak or negative staining in cancers, with moderate cytoplasmic positivity in liver and thyroid.</li>
-<li><strong>PDIK1L:</strong> Low/moderate RNA across tissues; prognostic in kidney cancer (KIRC) with favorable survival association.</li>
-<li><strong>DBNDD2:</strong> Broadly expressed; high in gliomas; high expression correlates with poor prognosis across multiple cancers.</li>
-<li><strong>CASKIN2:</strong> Low/moderate RNA; strong protein in ovarian and stomach cancers; tumor-selective expression suggests potential tissue-specific roles.</li>
+<li>
+<strong>EMC9:</strong> Low tissue specificity; modest RNA across normal tissues; protein moderate in colorectal, thyroid, prostate, and skin cancers. Discrepancies between RNA and protein suggest transcriptional activity with limited protein detection.
+<br><br>
+<img src="images/EMC9.png" alt="EMC9 expression plot" width="600">
+</li>
+<br>
+<li>
+<strong>FAM171A2:</strong> Highest in cerebral cortex and epididymis; mostly weak or negative staining in cancers, with moderate cytoplasmic positivity in liver and thyroid.
+<br><br>
+<img src="images/FAM171A2.png" alt="FAM171A2 expression plot" width="600">
+</li>
+<br>
+<li>
+<strong>PDIK1L:</strong> Low/moderate RNA across tissues; prognostic in kidney cancer (KIRC) with favorable survival association.
+<br><br>
+<img src="images/PDIK1L.png" alt="PDIK1L expression plot" width="600">
+</li>
+<br>
+<li>
+<strong>DBNDD2:</strong> Broadly expressed; high in gliomas; high expression correlates with poor prognosis across multiple cancers.
+<br><br>
+<img src="images/DBNDD2.png" alt="DBNDD2 expression plot" width="600">
+</li>
+<br>
+<li>
+<strong>CASKIN2:</strong> Low/moderate RNA; strong protein in ovarian and stomach cancers; tumor-selective expression suggests potential tissue-specific roles.
+<br><br>
+<img src="images/CASKIN2.png" alt="CASKIN2 expression plot" width="600">
+</li>
 </ul>
 
-<h3>Pan-Cancer Expression & Survival Analysis</h3>
-<p>GEPIA2 boxplots showed RNA upregulation in certain cancers (e.g., EMC9 in DLBC and THYM). HPA protein data often showed weak or absent staining, consistent with low-expression Tdark genes. Survival analysis suggested:</p>
 <ul>
-<li>High DBNDD2 expression = worse outcomes in multiple cancers.</li>
-<li>High EMC9 expression showed trends but did not reach statistical significance.</li>
+  <li>EXPRESSION DIY
+    <ul>
+      <li>Results for EMC9</li>
+      <li>Expression
+        <ul>
+          <li>DIY</li>
+          <li>Expression Analysis
+            <ul>
+              <li>Tumor = Red, Normal = Yellow</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>Survival Analysis
+        <ul>
+          <li>Pan cancer</li>
+          <li>Box plot
+            <ul>
+              <li>Gene symbol</li>
+              <li>Cancer type specific</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>Observations
+    <ul>
+      <li>EMC9 shows significantly higher RNA expression in diffuse large B-cell lymphoma (DLBC) in GEPIA2, but HPA protein data is almost uniformly negative.</li>
+      <li>Similar RNA-protein mismatch observed in thymoma (THYM).</li>
+      <li>RNA-protein differences may result from:
+        <ul>
+          <li>Antibody sensitivity limitations</li>
+          <li>Post-transcriptional regulation</li>
+          <li>Differences between RNA-seq cohorts and tissue microarrays</li>
+        </ul>
+      </li>
+      <li>HPA RNA expression comes from large-scale bulk RNA-seq (GTEx, TCGA), providing robust quantitative data.</li>
+      <li>HPA protein expression relies on immunohistochemistry, small sample sizes, and manual staining assessment.</li>
+      <li>Discrepancies between RNA and protein are expected, especially for understudied Tdark genes.</li>
+    </ul>
+  </li>
+
+  <li>SURVIVAL ANALYSIS
+    <ul>
+      <li>Interpretation:
+        <ul>
+          <li>High vs low expression groups analyzed for prognosis.</li>
+          <li>Hazard ratios, log-rank p-values, and curve patterns considered.</li>
+        </ul>
+      </li>
+      <li>EMC9
+        <ul>
+          <li>Upregulated in THYM and DLBC in GEPIA2.</li>
+          <li>DLBC:
+            <ul>
+              <li>High EMC9 group shows better trend (HR ~0.25), but p-values not significant (log-rank p ~0.08, p(HR) ~0.10).</li>
+              <li>Small sample size limits confidence (23 high vs 28 low).</li>
+                <img src="images/DLBC2.png" alt="DBNDD2 expression plot" width="600">
+            </ul>
+          </li>
+          <li>THYM:
+            <ul>
+              <li>High EMC9 trend toward better survival (HR ~0.42), but log-rank p ~0.23, p(HR) ~0.24; not statistically significant.</li>
+              <li>EMC9 not a reliable prognostic marker in thymoma.</li>
+                <img src="images/EMC9.png" alt="DBNDD2 expression plot" width="600">
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>DBNDD2
+        <ul>
+          <li>Pan-cancer survival: High DBNDD2 expression = worse outcomes.</li>
+          <li>Red curve drops faster than blue; p-values extremely small; large sample size = reliable result.</li>
+            <img src="images/DBNDD2_survival.png" alt="DBNDD2 expression plot" width="600">
+        </ul>
+      </li>
+    </ul>
+  </li>
 </ul>
 
-<h3>Single-Cell Profiling & Multi-Dataset Analysis</h3>
-<p>Two melanoma scRNA-seq datasets (GSE72056: 19 patients, 4,645 cells; GSE115978: 31 patients, 7,186 cells) were analyzed. Observations:</p>
-<ul>
-<li>Consistent expression trends across datasets</li>
-<li>Low-expressed genes (FAM171A2, CASKIN2) detectable but at low levels</li>
-<li>Clustering shows reproducibility of gene expression across cell types</li>
-<li>Seurat workflow allows integration of 10+ datasets, automated cluster-level visualization and pseudo-bulk summaries. Code available on <a href="https://github.com/">GitHub repository</a></li>
-</ul>
 
 <h3>Conclusion</h3>
 <p>Systematic integration of public data reveals preliminary insights into understudied genes. Several candidates (DBNDD2, CASKIN2) show potential relevance in cancer biology and merit further experimental investigation.</p>
