@@ -1,0 +1,1 @@
+Running the pipeline will process the raw data and the outputs will be in this directory
