@@ -1,21 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Understudied Human Protein-Coding Genes in Cancer</title>
-<style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; max-width: 1000px; }
-    h1, h2, h3, h4 { color: #2c3e50; }
-    ul { margin-top: 0; }
-    li { margin-bottom: 8px; }
-    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-    th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; }
-    th { background: #f0f0f0; }
-    code { background: #f4f4f4; padding: 2px 4px; border-radius: 3px; }
-    a { color: #2980b9; text-decoration: none; }
-</style>
-</head>
 <body>
 
 <h1>Exploring Understudied Human Protein-Coding Genes in Cancer</h1>
