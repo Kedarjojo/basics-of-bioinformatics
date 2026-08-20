@@ -12,7 +12,7 @@ RNA_PATH = DATA_PROCESSED / "rna_gene_cancer_table_with_symbols.csv"
 OUT_PATH = DATA_PROCESSED / "master_table.csv"
 
 def build_master_table() -> pd.DataFrame:
-    # HPA is already gene symbol + cancer code + protein_detected
+    # Use Ensembl identifiers as keys; symbols are display labels only.
     hpa = load_hpa_clean()
 
     # RNA table currently has ensembl_gene and cancer + rna_log2fc
@@ -23,12 +23,17 @@ def build_master_table() -> pd.DataFrame:
     hpa[C.cancer] = hpa[C.cancer].astype(str).str.upper().str.strip()
     rna[C.gene] = rna[C.gene].astype(str).str.upper().str.strip()
     rna[C.cancer] = rna[C.cancer].astype(str).str.upper().str.strip()
+    hpa["ensembl_base"] = hpa["ensembl_base"].astype(str).str.split(".").str[0]
+    if "ensembl_base" not in rna and "ensembl_gene" in rna:
+        rna["ensembl_base"] = rna["ensembl_gene"]
+    rna["ensembl_base"] = rna["ensembl_base"].astype(str).str.split(".").str[0]
 
     merged = pd.merge(
         hpa,
-        rna[[C.gene, C.cancer, C.rna_log2fc, "tumor_log2tpm_mean", "normal_log2tpm_mean"]],
-        on=[C.gene, C.cancer],
+        rna[["ensembl_base", C.cancer, C.rna_log2fc, "tumor_log2tpm_mean", "normal_log2tpm_mean"]],
+        on=["ensembl_base", C.cancer],
         how="inner",
+        validate="one_to_one",
     )
 
     # Drop any weird missing values

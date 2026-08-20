@@ -34,7 +34,7 @@ def main():
     after = len(merged)
 
     # Keep tidy columns
-    out = merged[[C.gene, C.cancer, "ensembl_gene", "tumor_log2tpm_mean", "normal_log2tpm_mean", C.rna_log2fc]].copy()
+    out = merged[[C.gene, C.cancer, "ensembl_gene", "ensembl_base", "tumor_log2tpm_mean", "normal_log2tpm_mean", C.rna_log2fc]].copy()
 
     out.to_csv(RNA_OUT, index=False)
 

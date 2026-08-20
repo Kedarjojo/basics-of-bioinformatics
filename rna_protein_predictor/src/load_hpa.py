@@ -26,16 +26,18 @@ def load_hpa_clean():
 
     # Rename columns to match schema
     df = df.rename(columns={
+        "Gene": "ensembl_base",
         "Gene name": C.gene,
         "Cancer": C.cancer,
     })
 
     # Keep only needed columns
-    df = df[[C.gene, C.cancer, "High", "Medium", "Low", "Not detected"]]
+    df = df[["ensembl_base", C.gene, C.cancer, "High", "Medium", "Low", "Not detected"]]
 
     # Standardize
     df = basic_clean(df)
     df[C.cancer] = df[C.cancer].str.lower().map(CANCER_MAP)
+    df["ensembl_base"] = df["ensembl_base"].astype(str).str.split(".").str[0]
 
     # Drop cancers not in mapping
     df = df.dropna(subset=[C.cancer])
@@ -55,4 +57,4 @@ def load_hpa_clean():
     # Optional: detection fraction
     df["detected_fraction"] = df["detected_count"] / df["total_patients"]
 
-    return df[[C.gene, C.cancer, C.protein_detected, "detected_fraction", "total_patients"]]
+    return df[["ensembl_base", C.gene, C.cancer, C.protein_detected, "detected_fraction", "total_patients"]]
