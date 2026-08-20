@@ -1,0 +1,54 @@
+{
+  "cptac_quantified_threshold": 0.8,
+  "cohorts": {
+    "COAD": {
+      "tumors": 96,
+      "hpa_cptac_overlap_genes": 7768,
+      "hpa_negative": 2140,
+      "cptac_quantified": 5273,
+      "hpa_negative_cptac_quantified": 1257,
+      "disagreement_rate_among_overlap": 0.16181771369721937,
+      "disagreement_rate_among_hpa_negative": 0.5873831775700935,
+      "median_rna_protein_spearman": 0.3264514378730331
+    },
+    "BRCA": {
+      "tumors": 119,
+      "hpa_cptac_overlap_genes": 9923,
+      "hpa_negative": 3332,
+      "cptac_quantified": 7546,
+      "hpa_negative_cptac_quantified": 2166,
+      "disagreement_rate_among_overlap": 0.21828076186637105,
+      "disagreement_rate_among_hpa_negative": 0.6500600240096038,
+      "median_rna_protein_spearman": 0.46242371001899
+    },
+    "GBM": {
+      "tumors": 99,
+      "hpa_cptac_overlap_genes": 9924,
+      "hpa_negative": 4763,
+      "cptac_quantified": 7970,
+      "hpa_negative_cptac_quantified": 3584,
+      "disagreement_rate_among_overlap": 0.3611446997178557,
+      "disagreement_rate_among_hpa_negative": 0.7524669326055007,
+      "median_rna_protein_spearman": 0.47628942486085335
+    },
+    "PAAD": {
+      "tumors": 105,
+      "hpa_cptac_overlap_genes": 9486,
+      "hpa_negative": 3317,
+      "cptac_quantified": 6686,
+      "hpa_negative_cptac_quantified": 2065,
+      "disagreement_rate_among_overlap": 0.21768922622812567,
+      "disagreement_rate_among_hpa_negative": 0.6225504974374435,
+      "median_rna_protein_spearman": 0.32774187461672716
+    }
+  },
+  "total_gene_cancer_pairs": 37101,
+  "unique_genes": 11267,
+  "recurrent_disagreement": {
+    "1": 4668,
+    "2": 2337,
+    "3": 1412,
+    "4": 655
+  },
+  "localization_tests_fdr_significant": 75
+}

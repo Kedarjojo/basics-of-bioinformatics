@@ -1,0 +1,32 @@
+{
+  "primary_threshold": {
+    "hpa_detection_fraction_max": 0.49,
+    "cptac_coverage_min": 0.8,
+    "by_cancer": {
+      "BRCA": {
+        "events": 2018,
+        "event_rate_among_overlap": 0.20336591756525244,
+        "event_rate_among_hpa_low": 0.6434948979591837
+      },
+      "COAD": {
+        "events": 1176,
+        "event_rate_among_overlap": 0.1513903192584964,
+        "event_rate_among_hpa_low": 0.5847836897066137
+      },
+      "GBM": {
+        "events": 3338,
+        "event_rate_among_overlap": 0.33635630794034665,
+        "event_rate_among_hpa_low": 0.7491023339317774
+      },
+      "PAAD": {
+        "events": 1898,
+        "event_rate_among_overlap": 0.2000843348091925,
+        "event_rate_among_hpa_low": 0.6162337662337662
+      }
+    }
+  },
+  "sensitivity_combinations": 16,
+  "gee_annotated_genes_only": true,
+  "gee_gene_clustered": true,
+  "gee_significant_localization_effects": 15
+}
