@@ -1,0 +1,39 @@
+{
+  "created_utc": "2026-08-20T18:55:06.001403+00:00",
+  "cptac_package_version": "unknown",
+  "cancer": "coad",
+  "cancer_code": "COAD",
+  "rna_source": "washu",
+  "protein_source": "bcm",
+  "rna_raw_shape": [
+    106,
+    60483
+  ],
+  "protein_raw_shape": [
+    197,
+    9152
+  ],
+  "matched_shape": [
+    96,
+    8757
+  ],
+  "sample_kind_counts": {
+    "tumor_or_unspecified": 96
+  },
+  "sample_examples": [
+    "01CO005",
+    "01CO006",
+    "01CO008",
+    "01CO013",
+    "01CO014",
+    "01CO015",
+    "01CO019",
+    "01CO022",
+    "05CO002",
+    "05CO003",
+    "05CO006",
+    "05CO011"
+  ],
+  "rna_missing_fraction": 0.0,
+  "protein_missing_fraction": 0.23456710821818738
+}

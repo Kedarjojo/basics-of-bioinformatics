@@ -1,0 +1,23 @@
+{
+  "cancer": "coad",
+  "matched_patients": 96,
+  "shared_input_genes": 8757,
+  "analyzed_genes": 6648,
+  "thresholds_are_provisional": true,
+  "parameters": {
+    "cancer": "coad",
+    "min_patients": 30,
+    "min_protein_coverage": 0.5,
+    "high_rna_z": 1.0,
+    "low_residual_z": -1.0
+  },
+  "triangulation_counts": {
+    "cross_assay_detected": 4014,
+    "unclassified": 1496,
+    "possible_ihc_specific_nondetection": 574,
+    "replicated_discordance_candidate": 314,
+    "assay_ambiguous": 250
+  },
+  "median_spearman_rho": 0.33092105263157895,
+  "hpa_overlap": 6029
+}
