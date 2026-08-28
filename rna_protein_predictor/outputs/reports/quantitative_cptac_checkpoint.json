@@ -1,0 +1,40 @@
+{
+  "checkpoint": "quantitative_cptac_ols_go_no_go",
+  "status": "PASS",
+  "rna_transform": "log2(FPKM + 1)",
+  "outer_validation": "5-fold patient-level cross-validation",
+  "cancers": {
+    "BRCA": {
+      "relative_mse_improvement": 0.296974,
+      "fraction_genes_improved": 0.866907,
+      "trimmed_10_improvement": 0.3086
+    },
+    "COAD": {
+      "relative_mse_improvement": 0.177719,
+      "fraction_genes_improved": 0.744663,
+      "trimmed_10_improvement": 0.1804
+    },
+    "GBM": {
+      "relative_mse_improvement": 0.311936,
+      "fraction_genes_improved": 0.870727,
+      "trimmed_10_improvement": 0.3365
+    },
+    "PDAC": {
+      "relative_mse_improvement": 0.210288,
+      "fraction_genes_improved": 0.766291,
+      "trimmed_10_improvement": 0.2202
+    }
+  },
+  "pairwise_gene_profile_spearman_range": [
+    0.503967,
+    0.633674
+  ],
+  "interpretation": "RNA improves held-out protein prediction in all four cancers; the result is broadly distributed and is not caused by a small number of influential genes.",
+  "remaining_validation": [
+    "patient-bootstrap confidence intervals",
+    "gene-bootstrap confidence intervals",
+    "nested Ridge sensitivity",
+    "Huber sensitivity",
+    "independent proteomics workflow"
+  ]
+}

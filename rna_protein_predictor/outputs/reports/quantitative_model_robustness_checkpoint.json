@@ -1,0 +1,24 @@
+{
+  "checkpoint": "quantitative_model_robustness",
+  "status": "PASS",
+  "models": [
+    "OLS",
+    "RidgeCV",
+    "Huber"
+  ],
+  "bootstrap_replicates": 2000,
+  "patient_ci_excludes_zero": {
+    "BRCA": true,
+    "COAD": true,
+    "GBM": true,
+    "PDAC": true
+  },
+  "relative_mse_improvement": {
+    "BRCA": 0.296974,
+    "COAD": 0.177719,
+    "GBM": 0.311936,
+    "PDAC": 0.210288
+  },
+  "conclusion": "RNA improves held-out quantitative protein prediction across all four cancers, and the conclusion is robust to estimator choice and patient/gene bootstrap resampling.",
+  "remaining_limitation": "Rare out-of-range predictions occur in fewer than 0.3% of rows."
+}
