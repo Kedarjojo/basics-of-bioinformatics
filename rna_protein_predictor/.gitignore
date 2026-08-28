@@ -1,0 +1,11 @@
+.DS_Store
+**/.DS_Store
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Downloaded cohort matrices and generated intermediate results.
+data/cptac/
+outputs/state/
+outputs/tables/

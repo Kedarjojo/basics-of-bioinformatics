@@ -1,0 +1,39 @@
+{
+  "created_utc": "2026-08-20T19:18:45.179428+00:00",
+  "cptac_package_version": "unknown",
+  "cancer": "gbm",
+  "cancer_code": "GBM",
+  "rna_source": "washu",
+  "protein_source": "bcm",
+  "rna_raw_shape": [
+    99,
+    60483
+  ],
+  "protein_raw_shape": [
+    99,
+    12098
+  ],
+  "matched_shape": [
+    99,
+    11554
+  ],
+  "sample_kind_counts": {
+    "tumor_or_unspecified": 99
+  },
+  "sample_examples": [
+    "C3L-00104",
+    "C3L-00365",
+    "C3L-00674",
+    "C3L-00677",
+    "C3L-01040",
+    "C3L-01043",
+    "C3L-01045",
+    "C3L-01046",
+    "C3L-01048",
+    "C3L-01049",
+    "C3L-01061",
+    "C3L-01142"
+  ],
+  "rna_missing_fraction": 0.0,
+  "protein_missing_fraction": 0.14483155949314855
+}

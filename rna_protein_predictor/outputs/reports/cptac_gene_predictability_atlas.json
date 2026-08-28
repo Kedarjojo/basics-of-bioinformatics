@@ -1,0 +1,26 @@
+{
+  "analysis": "CPTAC gene predictability atlas",
+  "primary_outcome": "median cross-cancer Ridge MSE improvement",
+  "minimum_cancers": 3,
+  "prediction_rows": 3559434,
+  "gene_cancer_rows": 37275,
+  "eligible_genes": 8681,
+  "genes_by_cancers_observed": {
+    "3": 2007,
+    "4": 6674
+  },
+  "primary_outcome_quantiles": {
+    "0.0": -0.2716588758410243,
+    "0.01": -0.019978212532190807,
+    "0.05": -0.006824107638258248,
+    "0.25": 0.036342026704643704,
+    "0.5": 0.14448080846603467,
+    "0.75": 0.30028019064661937,
+    "0.95": 0.5446221911551784,
+    "0.99": 0.670086611667466,
+    "1.0": 0.8673013710169952
+  },
+  "positive_primary_outcome_fraction": 0.8841147333256537,
+  "positive_in_all_observed_cancers_fraction": 0.5515493606727335,
+  "complete_technical_covariates": true
+}

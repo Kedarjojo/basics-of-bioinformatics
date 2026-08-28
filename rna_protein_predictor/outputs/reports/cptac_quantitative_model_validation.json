@@ -1,0 +1,464 @@
+{
+  "analysis": "regularized and robust CPTAC quantitative validation",
+  "primary_model": "ols",
+  "sensitivity_models": [
+    "ridge",
+    "huber"
+  ],
+  "ridge_alphas": [
+    0.01,
+    0.1,
+    1.0,
+    10.0,
+    100.0
+  ],
+  "bootstrap_replicates": 2000,
+  "point_estimates": [
+    {
+      "cancer": "BRCA",
+      "model": "ols",
+      "rows": 1106098,
+      "genes": 10256,
+      "rmse": 0.4692994761251854,
+      "mae": 0.3209072129546049,
+      "relative_mse_improvement": 0.2969741201355265,
+      "outside_training_protein_range": 0.0017331194885082516
+    },
+    {
+      "cancer": "BRCA",
+      "model": "ridge",
+      "rows": 1106098,
+      "genes": 10256,
+      "rmse": 0.4693704094309658,
+      "mae": 0.32127516474194706,
+      "relative_mse_improvement": 0.29676158327603364,
+      "outside_training_protein_range": 0.0015414547354755184
+    },
+    {
+      "cancer": "BRCA",
+      "model": "huber",
+      "rows": 1106098,
+      "genes": 10256,
+      "rmse": 0.470090145516954,
+      "mae": 0.3195375956417241,
+      "relative_mse_improvement": 0.29460322765979774,
+      "outside_training_protein_range": 0.002131818337977286
+    },
+    {
+      "cancer": "COAD",
+      "model": "ols",
+      "rows": 622787,
+      "genes": 7261,
+      "rmse": 0.4031049237228962,
+      "mae": 0.27714076644646596,
+      "relative_mse_improvement": 0.177718525075245,
+      "outside_training_protein_range": 0.0006952617829209665
+    },
+    {
+      "cancer": "COAD",
+      "model": "ridge",
+      "rows": 622787,
+      "genes": 7261,
+      "rmse": 0.4031288820973595,
+      "mae": 0.27731764418895966,
+      "relative_mse_improvement": 0.1776207782516397,
+      "outside_training_protein_range": 0.0006165831977867233
+    },
+    {
+      "cancer": "COAD",
+      "model": "huber",
+      "rows": 622787,
+      "genes": 7261,
+      "rmse": 0.4032880121724697,
+      "mae": 0.27589567990681196,
+      "relative_mse_improvement": 0.17697140232324093,
+      "outside_training_protein_range": 0.0007883915367533362
+    },
+    {
+      "cancer": "GBM",
+      "model": "ols",
+      "rows": 959278,
+      "genes": 10443,
+      "rmse": 0.4045062062824103,
+      "mae": 0.27918442692818585,
+      "relative_mse_improvement": 0.31193562778117767,
+      "outside_training_protein_range": 0.0026603341262908145
+    },
+    {
+      "cancer": "GBM",
+      "model": "ridge",
+      "rows": 959278,
+      "genes": 10443,
+      "rmse": 0.4039005593565684,
+      "mae": 0.2794305739158501,
+      "relative_mse_improvement": 0.31399449409910174,
+      "outside_training_protein_range": 0.0024560137937073507
+    },
+    {
+      "cancer": "GBM",
+      "model": "huber",
+      "rows": 959278,
+      "genes": 10443,
+      "rmse": 0.40618552859432966,
+      "mae": 0.2783205198998986,
+      "relative_mse_improvement": 0.3062107199952945,
+      "outside_training_protein_range": 0.0027979376155817188
+    },
+    {
+      "cancer": "PDAC",
+      "model": "ols",
+      "rows": 871271,
+      "genes": 9315,
+      "rmse": 0.4193321556314257,
+      "mae": 0.2813451146124784,
+      "relative_mse_improvement": 0.2102875073112862,
+      "outside_training_protein_range": 0.0009032780845454515
+    },
+    {
+      "cancer": "PDAC",
+      "model": "ridge",
+      "rows": 871271,
+      "genes": 9315,
+      "rmse": 0.41861589494132795,
+      "mae": 0.28142520736521104,
+      "relative_mse_improvement": 0.21298301693499833,
+      "outside_training_protein_range": 0.0008022762148631137
+    },
+    {
+      "cancer": "PDAC",
+      "model": "huber",
+      "rows": 871271,
+      "genes": 9315,
+      "rmse": 0.41947092713922896,
+      "mae": 0.2797794750405854,
+      "relative_mse_improvement": 0.20976473449092325,
+      "outside_training_protein_range": 0.0009950979660748494
+    }
+  ],
+  "bootstrap_intervals": [
+    {
+      "bootstrap": "patient",
+      "cancer": "BRCA",
+      "model": "huber",
+      "estimand": "relative_mse_improvement",
+      "estimate": 0.2952083684892986,
+      "ci_low": 0.25900104357366105,
+      "ci_high": 0.3256147534633616
+    },
+    {
+      "bootstrap": "patient",
+      "cancer": "BRCA",
+      "model": "ols",
+      "estimand": "relative_mse_improvement",
+      "estimate": 0.2976850942559731,
+      "ci_low": 0.26263968060211945,
+      "ci_high": 0.3266929065429549
+    },
+    {
+      "bootstrap": "patient",
+      "cancer": "BRCA",
+      "model": "ridge",
+      "estimand": "relative_mse_improvement",
+      "estimate": 0.2974940380207037,
+      "ci_low": 0.2641444039677134,
+      "ci_high": 0.32511048359566425
+    },
+    {
+      "bootstrap": "patient",
+      "cancer": "COAD",
+      "model": "huber",
+      "estimand": "relative_mse_improvement",
+      "estimate": 0.17803040533028647,
+      "ci_low": 0.1484342853983308,
+      "ci_high": 0.20406355677646054
+    },
+    {
+      "bootstrap": "patient",
+      "cancer": "COAD",
+      "model": "ols",
+      "estimand": "relative_mse_improvement",
+      "estimate": 0.17873828105812084,
+      "ci_low": 0.14959507838438604,
+      "ci_high": 0.20352591235326234
+    },
+    {
+      "bootstrap": "patient",
+      "cancer": "COAD",
+      "model": "ridge",
+      "estimand": "relative_mse_improvement",
+      "estimate": 0.17852312679199112,
+      "ci_low": 0.15106942702182807,
+      "ci_high": 0.20206906012050652
+    },
+    {
+      "bootstrap": "patient",
+      "cancer": "GBM",
+      "model": "huber",
+      "estimand": "relative_mse_improvement",
+      "estimate": 0.30793161162225385,
+      "ci_low": 0.26409885846821846,
+      "ci_high": 0.34115286953090185
+    },
+    {
+      "bootstrap": "patient",
+      "cancer": "GBM",
+      "model": "ols",
+      "estimand": "relative_mse_improvement",
+      "estimate": 0.3134706140371097,
+      "ci_low": 0.2752959534332004,
+      "ci_high": 0.3443452881397431
+    },
+    {
+      "bootstrap": "patient",
+      "cancer": "GBM",
+      "model": "ridge",
+      "estimand": "relative_mse_improvement",
+      "estimate": 0.31557423014948816,
+      "ci_low": 0.28027385869509475,
+      "ci_high": 0.34424899730912356
+    },
+    {
+      "bootstrap": "patient",
+      "cancer": "PDAC",
+      "model": "huber",
+      "estimand": "relative_mse_improvement",
+      "estimate": 0.20965359580631054,
+      "ci_low": 0.18505249264816176,
+      "ci_high": 0.23693909311707168
+    },
+    {
+      "bootstrap": "patient",
+      "cancer": "PDAC",
+      "model": "ols",
+      "estimand": "relative_mse_improvement",
+      "estimate": 0.21028361021217712,
+      "ci_low": 0.1835205130575151,
+      "ci_high": 0.23759285093096288
+    },
+    {
+      "bootstrap": "patient",
+      "cancer": "PDAC",
+      "model": "ridge",
+      "estimand": "relative_mse_improvement",
+      "estimate": 0.21295459652889115,
+      "ci_low": 0.1883283283081109,
+      "ci_high": 0.23842915348474514
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "BRCA",
+      "model": "huber",
+      "estimand": "median_gene_improvement",
+      "estimate": 0.1902423655002447,
+      "ci_low": 0.18348746848847625,
+      "ci_high": 0.19670542549566716
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "BRCA",
+      "model": "huber",
+      "estimand": "fraction_genes_improved",
+      "estimate": 0.8658346333853354,
+      "ci_low": 0.859106864274571,
+      "ci_high": 0.8723673946957878
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "BRCA",
+      "model": "ols",
+      "estimand": "median_gene_improvement",
+      "estimate": 0.19123857440633935,
+      "ci_low": 0.18438596024008946,
+      "ci_high": 0.1977490780363789
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "BRCA",
+      "model": "ols",
+      "estimand": "fraction_genes_improved",
+      "estimate": 0.8668096723868954,
+      "ci_low": 0.8603744149765991,
+      "ci_high": 0.8733424336973479
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "BRCA",
+      "model": "ridge",
+      "estimand": "median_gene_improvement",
+      "estimate": 0.18660554048143968,
+      "ci_low": 0.1796182492366828,
+      "ci_high": 0.1932332332134099
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "BRCA",
+      "model": "ridge",
+      "estimand": "fraction_genes_improved",
+      "estimate": 0.8553042121684867,
+      "ci_low": 0.8486739469578783,
+      "ci_high": 0.861546899375975
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "COAD",
+      "model": "huber",
+      "estimand": "median_gene_improvement",
+      "estimate": 0.07504376705048088,
+      "ci_low": 0.07071195353762248,
+      "ci_high": 0.07894161963800204
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "COAD",
+      "model": "huber",
+      "estimand": "fraction_genes_improved",
+      "estimate": 0.7514116512877014,
+      "ci_low": 0.7413579396777303,
+      "ci_high": 0.7613276408208236
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "COAD",
+      "model": "ols",
+      "estimand": "median_gene_improvement",
+      "estimate": 0.07343455203150984,
+      "ci_low": 0.06898254972102014,
+      "ci_high": 0.07876763056298147
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "COAD",
+      "model": "ols",
+      "estimand": "fraction_genes_improved",
+      "estimate": 0.7446632695221044,
+      "ci_low": 0.7346095579121333,
+      "ci_high": 0.7547169811320755
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "COAD",
+      "model": "ridge",
+      "estimand": "median_gene_improvement",
+      "estimate": 0.07072321517314628,
+      "ci_low": 0.06623180801331156,
+      "ci_high": 0.07571255159633965
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "COAD",
+      "model": "ridge",
+      "estimand": "fraction_genes_improved",
+      "estimate": 0.7253821787632557,
+      "ci_low": 0.7153284671532847,
+      "ci_high": 0.735298168296378
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "GBM",
+      "model": "huber",
+      "estimand": "median_gene_improvement",
+      "estimate": 0.225779572360006,
+      "ci_low": 0.21915007778178794,
+      "ci_high": 0.2321557803427301
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "GBM",
+      "model": "huber",
+      "estimand": "fraction_genes_improved",
+      "estimate": 0.8686201283156181,
+      "ci_low": 0.8615340419419707,
+      "ci_high": 0.8750359092214881
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "GBM",
+      "model": "ols",
+      "estimand": "median_gene_improvement",
+      "estimate": 0.2271541830366921,
+      "ci_low": 0.22040643096045787,
+      "ci_high": 0.2340364924592676
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "GBM",
+      "model": "ols",
+      "estimand": "fraction_genes_improved",
+      "estimate": 0.8708225605668869,
+      "ci_low": 0.8640237479651441,
+      "ci_high": 0.8771425835487887
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "GBM",
+      "model": "ridge",
+      "estimand": "median_gene_improvement",
+      "estimate": 0.22488524106135588,
+      "ci_low": 0.21778184675116602,
+      "ci_high": 0.23094453598082643
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "GBM",
+      "model": "ridge",
+      "estimand": "fraction_genes_improved",
+      "estimate": 0.856650387819592,
+      "ci_low": 0.8496576654218136,
+      "ci_high": 0.8634492004213349
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "PDAC",
+      "model": "huber",
+      "estimand": "median_gene_improvement",
+      "estimate": 0.08549226044178138,
+      "ci_low": 0.08177150449804838,
+      "ci_high": 0.09045977216619938
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "PDAC",
+      "model": "huber",
+      "estimand": "fraction_genes_improved",
+      "estimate": 0.7723027375201288,
+      "ci_low": 0.7640365002683843,
+      "ci_high": 0.780354267310789
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "PDAC",
+      "model": "ols",
+      "estimand": "median_gene_improvement",
+      "estimate": 0.08539602261980939,
+      "ci_low": 0.08171039657051615,
+      "ci_high": 0.08954924429288125
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "PDAC",
+      "model": "ols",
+      "estimand": "fraction_genes_improved",
+      "estimate": 0.7662909286097692,
+      "ci_low": 0.758239398819109,
+      "ci_high": 0.7748819108964036
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "PDAC",
+      "model": "ridge",
+      "estimand": "median_gene_improvement",
+      "estimate": 0.0824600659390341,
+      "ci_low": 0.07810448016497716,
+      "ci_high": 0.08561488718124677
+    },
+    {
+      "bootstrap": "gene",
+      "cancer": "PDAC",
+      "model": "ridge",
+      "estimand": "fraction_genes_improved",
+      "estimate": 0.748792270531401,
+      "ci_low": 0.7398792270531401,
+      "ci_high": 0.7580246913580246
+    }
+  ]
+}

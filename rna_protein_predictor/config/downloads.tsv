@@ -1,6 +1,0 @@
-name	url	archive_path	output_path	description
-xena_expression	https://toil-xena-hub.s3.us-east-1.amazonaws.com/download/TcgaTargetGtex_rsem_gene_tpm.gz	data/raw/rnaseq/TcgaTargetGtex_rsem_gene_tpm.gz	data/raw/rnaseq/TcgaTargetGtex_rsem_gene_tpm.gz	UCSC Xena Toil TCGA TARGET GTEx log2 TPM matrix
-xena_phenotype	https://toil-xena-hub.s3.us-east-1.amazonaws.com/download/TcgaTargetGTEX_phenotype.txt.gz	data/raw/downloads/TcgaTargetGTEX_phenotype.txt.gz	data/raw/rnaseq/TcgaTargetGTEX_phenotype.txt	UCSC Xena sample phenotype table
-hpa_pathology	https://v23.proteinatlas.org/download/pathology.tsv.zip	data/raw/downloads/hpa_v23_pathology.tsv.zip	data/raw/hpa/cancer_data.tsv	HPA v23 tumor pathology immunohistochemistry
-hpa_subcellular	https://v23.proteinatlas.org/download/subcellular_location.tsv.zip	data/raw/downloads/hpa_v23_subcellular_location.tsv.zip	data/raw/hpa/subcellular_location.tsv	HPA v23 subcellular localization
-gencode_gtf	https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_23/gencode.v23.annotation.gtf.gz	data/raw/downloads/gencode.v23.annotation.gtf.gz	data/raw/gene_features/gencode.v23.annotation.gtf	GENCODE human release 23 gene annotation

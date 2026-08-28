@@ -1,0 +1,40 @@
+{
+  "created_utc": "2026-08-20T19:20:09.247393+00:00",
+  "cptac_package_version": "unknown",
+  "cancer": "pdac",
+  "cancer_code": "PAAD",
+  "rna_source": "washu",
+  "protein_source": "bcm",
+  "rna_raw_shape": [
+    179,
+    60483
+  ],
+  "protein_raw_shape": [
+    149,
+    11404
+  ],
+  "matched_shape": [
+    120,
+    10903
+  ],
+  "sample_kind_counts": {
+    "tumor_or_unspecified": 105,
+    "normal": 15
+  },
+  "sample_examples": [
+    "C3L-00017",
+    "C3L-00102",
+    "C3L-00277",
+    "C3L-00589",
+    "C3L-00598",
+    "C3L-00599",
+    "C3L-00622",
+    "C3L-00625",
+    "C3L-00819",
+    "C3L-00928",
+    "C3L-01031",
+    "C3L-01037"
+  ],
+  "rna_missing_fraction": 0.0,
+  "protein_missing_fraction": 0.21974762297838515
+}

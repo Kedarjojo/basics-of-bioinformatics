@@ -1,0 +1,39 @@
+{
+  "created_utc": "2026-08-20T19:17:19.395158+00:00",
+  "cptac_package_version": "unknown",
+  "cancer": "brca",
+  "cancer_code": "BRCA",
+  "rna_source": "washu",
+  "protein_source": "bcm",
+  "rna_raw_shape": [
+    121,
+    60483
+  ],
+  "protein_raw_shape": [
+    122,
+    12021
+  ],
+  "matched_shape": [
+    119,
+    11486
+  ],
+  "sample_kind_counts": {
+    "tumor_or_unspecified": 119
+  },
+  "sample_examples": [
+    "01BR001",
+    "01BR008",
+    "01BR009",
+    "01BR010",
+    "01BR015",
+    "01BR017",
+    "01BR018",
+    "01BR020",
+    "01BR023",
+    "01BR025",
+    "01BR026",
+    "01BR027"
+  ],
+  "rna_missing_fraction": 0.0,
+  "protein_missing_fraction": 0.177124654493523
+}

@@ -1,0 +1,116 @@
+{
+  "analysis": "prespecified quantitative CPTAC benchmark",
+  "cancers": [
+    "brca",
+    "coad",
+    "gbm",
+    "pdac"
+  ],
+  "min_pairs": 30,
+  "folds": 5,
+  "seed": 20260827,
+  "within_cancer_cv": [
+    {
+      "cancer": "BRCA",
+      "prediction_rows": 1106098,
+      "genes": 10256,
+      "rmse_gene_mean": 0.5597117358038629,
+      "rmse_rna_linear": 0.4692994761251854,
+      "relative_mse_improvement": 0.2969741201355265,
+      "median_gene_spearman": 0.42452032708942394,
+      "fraction_genes_positive_spearman": 0.8941107644305772,
+      "fraction_genes_positive_mse_improvement": 0.8669071762870515
+    },
+    {
+      "cancer": "COAD",
+      "prediction_rows": 622787,
+      "genes": 7261,
+      "rmse_gene_mean": 0.44453693395067195,
+      "rmse_rna_linear": 0.4031049237228962,
+      "relative_mse_improvement": 0.177718525075245,
+      "median_gene_spearman": 0.266711882799783,
+      "fraction_genes_positive_spearman": 0.7987880457237295,
+      "fraction_genes_positive_mse_improvement": 0.7446632695221044
+    },
+    {
+      "cancer": "GBM",
+      "prediction_rows": 959278,
+      "genes": 10443,
+      "rmse_gene_mean": 0.4876527233553831,
+      "rmse_rna_linear": 0.4045062062824103,
+      "relative_mse_improvement": 0.31193562778117767,
+      "median_gene_spearman": 0.44131106988249846,
+      "fraction_genes_positive_spearman": 0.8954323470267165,
+      "fraction_genes_positive_mse_improvement": 0.8707268026429187
+    },
+    {
+      "cancer": "PDAC",
+      "prediction_rows": 871271,
+      "genes": 9315,
+      "rmse_gene_mean": 0.4718714074443615,
+      "rmse_rna_linear": 0.4193321556314257,
+      "relative_mse_improvement": 0.2102875073112862,
+      "median_gene_spearman": 0.2790897781463819,
+      "fraction_genes_positive_spearman": 0.8140633387010199,
+      "fraction_genes_positive_mse_improvement": 0.7662909286097692
+    }
+  ],
+  "loco_transfer": [
+    {
+      "held_out_cancer": "BRCA",
+      "genes": 8600,
+      "median_test_spearman": 0.4673479561316052,
+      "fraction_positive": 0.9633720930232558
+    },
+    {
+      "held_out_cancer": "COAD",
+      "genes": 7011,
+      "median_test_spearman": 0.3211204557786218,
+      "fraction_positive": 0.9238339751818571
+    },
+    {
+      "held_out_cancer": "GBM",
+      "genes": 8455,
+      "median_test_spearman": 0.47150278293135434,
+      "fraction_positive": 0.9529272619751626
+    },
+    {
+      "held_out_cancer": "PDAC",
+      "genes": 8599,
+      "median_test_spearman": 0.31838067592784575,
+      "fraction_positive": 0.9272008373066636
+    }
+  ],
+  "pairwise_gene_profile_stability": [
+    {
+      "cancer_a": "BRCA",
+      "cancer_b": "COAD",
+      "gene_profile_spearman": 0.5637909305191596
+    },
+    {
+      "cancer_a": "BRCA",
+      "cancer_b": "GBM",
+      "gene_profile_spearman": 0.6028101777375865
+    },
+    {
+      "cancer_a": "BRCA",
+      "cancer_b": "PDAC",
+      "gene_profile_spearman": 0.6336737509050038
+    },
+    {
+      "cancer_a": "COAD",
+      "cancer_b": "GBM",
+      "gene_profile_spearman": 0.5039674329053754
+    },
+    {
+      "cancer_a": "COAD",
+      "cancer_b": "PDAC",
+      "gene_profile_spearman": 0.5894612429868344
+    },
+    {
+      "cancer_a": "GBM",
+      "cancer_b": "PDAC",
+      "gene_profile_spearman": 0.5798394599983626
+    }
+  ]
+}
