@@ -1,0 +1,665 @@
+{
+  "analysis": "biological predictability grouped ablation and sensitivity",
+  "created_utc": "2026-08-28T18:18:15.252293+00:00",
+  "target": "primary_median_ridge_improvement",
+  "genes": 8672,
+  "folds": 5,
+  "repeats": 20,
+  "bootstrap_replicates": 2000,
+  "permutations": 100,
+  "seed": 20260828,
+  "groups": {
+    "length": [
+      "log1p_protein_length"
+    ],
+    "topology": [
+      "log1p_transmembrane_count",
+      "has_signal_peptide"
+    ],
+    "localization": [
+      "uniprot_secreted",
+      "uniprot_extracellular",
+      "uniprot_plasma_membrane",
+      "uniprot_membrane_any",
+      "uniprot_cytosol",
+      "uniprot_nucleus",
+      "uniprot_mitochondrion",
+      "uniprot_endoplasmic_reticulum",
+      "uniprot_golgi",
+      "uniprot_lysosome",
+      "uniprot_peroxisome",
+      "uniprot_cell_junction"
+    ],
+    "reduced_localization": [
+      "uniprot_secreted",
+      "uniprot_plasma_membrane",
+      "uniprot_cytosol",
+      "uniprot_nucleus",
+      "uniprot_mitochondrion",
+      "uniprot_endoplasmic_reticulum",
+      "uniprot_golgi",
+      "uniprot_lysosome",
+      "uniprot_peroxisome",
+      "uniprot_cell_junction"
+    ]
+  },
+  "variant_features": {
+    "technical": [
+      "median_rna_mean",
+      "median_rna_sd",
+      "median_rna_iqr",
+      "median_protein_mean",
+      "median_protein_sd",
+      "median_protein_iqr",
+      "median_protein_coverage",
+      "minimum_protein_coverage",
+      "median_paired_patients",
+      "cancers_observed"
+    ],
+    "technical_plus_length": [
+      "median_rna_mean",
+      "median_rna_sd",
+      "median_rna_iqr",
+      "median_protein_mean",
+      "median_protein_sd",
+      "median_protein_iqr",
+      "median_protein_coverage",
+      "minimum_protein_coverage",
+      "median_paired_patients",
+      "cancers_observed",
+      "log1p_protein_length"
+    ],
+    "technical_plus_topology": [
+      "median_rna_mean",
+      "median_rna_sd",
+      "median_rna_iqr",
+      "median_protein_mean",
+      "median_protein_sd",
+      "median_protein_iqr",
+      "median_protein_coverage",
+      "minimum_protein_coverage",
+      "median_paired_patients",
+      "cancers_observed",
+      "log1p_transmembrane_count",
+      "has_signal_peptide"
+    ],
+    "technical_plus_localization": [
+      "median_rna_mean",
+      "median_rna_sd",
+      "median_rna_iqr",
+      "median_protein_mean",
+      "median_protein_sd",
+      "median_protein_iqr",
+      "median_protein_coverage",
+      "minimum_protein_coverage",
+      "median_paired_patients",
+      "cancers_observed",
+      "uniprot_secreted",
+      "uniprot_extracellular",
+      "uniprot_plasma_membrane",
+      "uniprot_membrane_any",
+      "uniprot_cytosol",
+      "uniprot_nucleus",
+      "uniprot_mitochondrion",
+      "uniprot_endoplasmic_reticulum",
+      "uniprot_golgi",
+      "uniprot_lysosome",
+      "uniprot_peroxisome",
+      "uniprot_cell_junction"
+    ],
+    "combined_full": [
+      "median_rna_mean",
+      "median_rna_sd",
+      "median_rna_iqr",
+      "median_protein_mean",
+      "median_protein_sd",
+      "median_protein_iqr",
+      "median_protein_coverage",
+      "minimum_protein_coverage",
+      "median_paired_patients",
+      "cancers_observed",
+      "log1p_protein_length",
+      "log1p_transmembrane_count",
+      "has_signal_peptide",
+      "uniprot_secreted",
+      "uniprot_extracellular",
+      "uniprot_plasma_membrane",
+      "uniprot_membrane_any",
+      "uniprot_cytosol",
+      "uniprot_nucleus",
+      "uniprot_mitochondrion",
+      "uniprot_endoplasmic_reticulum",
+      "uniprot_golgi",
+      "uniprot_lysosome",
+      "uniprot_peroxisome",
+      "uniprot_cell_junction"
+    ],
+    "combined_no_length": [
+      "median_rna_mean",
+      "median_rna_sd",
+      "median_rna_iqr",
+      "median_protein_mean",
+      "median_protein_sd",
+      "median_protein_iqr",
+      "median_protein_coverage",
+      "minimum_protein_coverage",
+      "median_paired_patients",
+      "cancers_observed",
+      "log1p_transmembrane_count",
+      "has_signal_peptide",
+      "uniprot_secreted",
+      "uniprot_extracellular",
+      "uniprot_plasma_membrane",
+      "uniprot_membrane_any",
+      "uniprot_cytosol",
+      "uniprot_nucleus",
+      "uniprot_mitochondrion",
+      "uniprot_endoplasmic_reticulum",
+      "uniprot_golgi",
+      "uniprot_lysosome",
+      "uniprot_peroxisome",
+      "uniprot_cell_junction"
+    ],
+    "combined_no_topology": [
+      "median_rna_mean",
+      "median_rna_sd",
+      "median_rna_iqr",
+      "median_protein_mean",
+      "median_protein_sd",
+      "median_protein_iqr",
+      "median_protein_coverage",
+      "minimum_protein_coverage",
+      "median_paired_patients",
+      "cancers_observed",
+      "log1p_protein_length",
+      "uniprot_secreted",
+      "uniprot_extracellular",
+      "uniprot_plasma_membrane",
+      "uniprot_membrane_any",
+      "uniprot_cytosol",
+      "uniprot_nucleus",
+      "uniprot_mitochondrion",
+      "uniprot_endoplasmic_reticulum",
+      "uniprot_golgi",
+      "uniprot_lysosome",
+      "uniprot_peroxisome",
+      "uniprot_cell_junction"
+    ],
+    "combined_no_localization": [
+      "median_rna_mean",
+      "median_rna_sd",
+      "median_rna_iqr",
+      "median_protein_mean",
+      "median_protein_sd",
+      "median_protein_iqr",
+      "median_protein_coverage",
+      "minimum_protein_coverage",
+      "median_paired_patients",
+      "cancers_observed",
+      "log1p_protein_length",
+      "log1p_transmembrane_count",
+      "has_signal_peptide"
+    ],
+    "combined_reduced_overlap": [
+      "median_rna_mean",
+      "median_rna_sd",
+      "median_rna_iqr",
+      "median_protein_mean",
+      "median_protein_sd",
+      "median_protein_iqr",
+      "median_protein_coverage",
+      "minimum_protein_coverage",
+      "median_paired_patients",
+      "cancers_observed",
+      "log1p_protein_length",
+      "log1p_transmembrane_count",
+      "has_signal_peptide",
+      "uniprot_secreted",
+      "uniprot_plasma_membrane",
+      "uniprot_cytosol",
+      "uniprot_nucleus",
+      "uniprot_mitochondrion",
+      "uniprot_endoplasmic_reticulum",
+      "uniprot_golgi",
+      "uniprot_lysosome",
+      "uniprot_peroxisome",
+      "uniprot_cell_junction"
+    ]
+  },
+  "comparisons": [
+    {
+      "name": "full_vs_technical",
+      "enhanced": "combined_full",
+      "reference": "technical"
+    },
+    {
+      "name": "reduced_vs_technical",
+      "enhanced": "combined_reduced_overlap",
+      "reference": "technical"
+    },
+    {
+      "name": "length_group_vs_technical",
+      "enhanced": "technical_plus_length",
+      "reference": "technical"
+    },
+    {
+      "name": "topology_group_vs_technical",
+      "enhanced": "technical_plus_topology",
+      "reference": "technical"
+    },
+    {
+      "name": "localization_group_vs_technical",
+      "enhanced": "technical_plus_localization",
+      "reference": "technical"
+    },
+    {
+      "name": "unique_length_full_vs_no_length",
+      "enhanced": "combined_full",
+      "reference": "combined_no_length"
+    },
+    {
+      "name": "unique_topology_full_vs_no_topology",
+      "enhanced": "combined_full",
+      "reference": "combined_no_topology"
+    },
+    {
+      "name": "unique_localization_full_vs_no_localization",
+      "enhanced": "combined_full",
+      "reference": "combined_no_localization"
+    },
+    {
+      "name": "full_vs_reduced_overlap",
+      "enhanced": "combined_full",
+      "reference": "combined_reduced_overlap"
+    }
+  ],
+  "paired_intervals": [
+    {
+      "comparison": "full_vs_reduced_overlap",
+      "enhanced": "combined_full",
+      "reference": "combined_reduced_overlap",
+      "metric": "mae",
+      "estimate": 3.980839851931706e-06,
+      "ci_low": -9.138705303021085e-05,
+      "ci_high": 9.516529929827974e-05,
+      "probability_favorable": 0.532
+    },
+    {
+      "comparison": "full_vs_reduced_overlap",
+      "enhanced": "combined_full",
+      "reference": "combined_reduced_overlap",
+      "metric": "r2",
+      "estimate": 0.00026689219888687,
+      "ci_low": -0.00083147388199645,
+      "ci_high": 0.0012720399748802152,
+      "probability_favorable": 0.6735
+    },
+    {
+      "comparison": "full_vs_reduced_overlap",
+      "enhanced": "combined_full",
+      "reference": "combined_reduced_overlap",
+      "metric": "rmse",
+      "estimate": 3.0546844470999424e-05,
+      "ci_low": -9.619416346116489e-05,
+      "ci_high": 0.00014578634387018422,
+      "probability_favorable": 0.6735
+    },
+    {
+      "comparison": "full_vs_reduced_overlap",
+      "enhanced": "combined_full",
+      "reference": "combined_reduced_overlap",
+      "metric": "spearman",
+      "estimate": -0.000510934316754974,
+      "ci_low": -0.0013565791711859204,
+      "ci_high": 0.00038596303950683646,
+      "probability_favorable": 0.128
+    },
+    {
+      "comparison": "full_vs_technical",
+      "enhanced": "combined_full",
+      "reference": "technical",
+      "metric": "mae",
+      "estimate": 0.00513416344217555,
+      "ci_low": 0.004237212683740127,
+      "ci_high": 0.006016886060208809,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "full_vs_technical",
+      "enhanced": "combined_full",
+      "reference": "technical",
+      "metric": "r2",
+      "estimate": 0.06561639130373009,
+      "ci_low": 0.05492687827524475,
+      "ci_high": 0.0758085457910101,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "full_vs_technical",
+      "enhanced": "combined_full",
+      "reference": "technical",
+      "metric": "rmse",
+      "estimate": 0.007341789007157332,
+      "ci_low": 0.006191940164862995,
+      "ci_high": 0.008474434406137847,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "full_vs_technical",
+      "enhanced": "combined_full",
+      "reference": "technical",
+      "metric": "spearman",
+      "estimate": 0.012915849698156012,
+      "ci_low": 0.003528615210760233,
+      "ci_high": 0.02224920787944767,
+      "probability_favorable": 0.996
+    },
+    {
+      "comparison": "length_group_vs_technical",
+      "enhanced": "technical_plus_length",
+      "reference": "technical",
+      "metric": "mae",
+      "estimate": 0.0015732218148138896,
+      "ci_low": 0.0010973366529551513,
+      "ci_high": 0.00207408108292846,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "length_group_vs_technical",
+      "enhanced": "technical_plus_length",
+      "reference": "technical",
+      "metric": "r2",
+      "estimate": 0.01927521526453746,
+      "ci_low": 0.013907083223039646,
+      "ci_high": 0.024317542973578885,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "length_group_vs_technical",
+      "enhanced": "technical_plus_length",
+      "reference": "technical",
+      "metric": "rmse",
+      "estimate": 0.0021144034572974646,
+      "ci_low": 0.001531789658220456,
+      "ci_high": 0.002659590335760302,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "length_group_vs_technical",
+      "enhanced": "technical_plus_length",
+      "reference": "technical",
+      "metric": "spearman",
+      "estimate": 0.010695232802378218,
+      "ci_low": 0.0046424320761591946,
+      "ci_high": 0.01671480286805712,
+      "probability_favorable": 0.9995
+    },
+    {
+      "comparison": "localization_group_vs_technical",
+      "enhanced": "technical_plus_localization",
+      "reference": "technical",
+      "metric": "mae",
+      "estimate": 0.003383782730189397,
+      "ci_low": 0.002588151236841413,
+      "ci_high": 0.00409735195672232,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "localization_group_vs_technical",
+      "enhanced": "technical_plus_localization",
+      "reference": "technical",
+      "metric": "r2",
+      "estimate": 0.04604249973296082,
+      "ci_low": 0.03725075038805181,
+      "ci_high": 0.054978821820309554,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "localization_group_vs_technical",
+      "enhanced": "technical_plus_localization",
+      "reference": "technical",
+      "metric": "rmse",
+      "estimate": 0.00511594574775813,
+      "ci_low": 0.004133774570501255,
+      "ci_high": 0.006100821561977862,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "localization_group_vs_technical",
+      "enhanced": "technical_plus_localization",
+      "reference": "technical",
+      "metric": "spearman",
+      "estimate": -0.002749206899791967,
+      "ci_low": -0.011037479326488547,
+      "ci_high": 0.005181101876296521,
+      "probability_favorable": 0.2465
+    },
+    {
+      "comparison": "reduced_vs_technical",
+      "enhanced": "combined_reduced_overlap",
+      "reference": "technical",
+      "metric": "mae",
+      "estimate": 0.005134582690276321,
+      "ci_low": 0.004244220535119419,
+      "ci_high": 0.006013759616340976,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "reduced_vs_technical",
+      "enhanced": "combined_reduced_overlap",
+      "reference": "technical",
+      "metric": "r2",
+      "estimate": 0.06535032237375765,
+      "ci_low": 0.054975491101845665,
+      "ci_high": 0.07556744229771027,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "reduced_vs_technical",
+      "enhanced": "combined_reduced_overlap",
+      "reference": "technical",
+      "metric": "rmse",
+      "estimate": 0.007314823173236451,
+      "ci_low": 0.006157441485921419,
+      "ci_high": 0.008431951816226786,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "reduced_vs_technical",
+      "enhanced": "combined_reduced_overlap",
+      "reference": "technical",
+      "metric": "spearman",
+      "estimate": 0.01343233311467984,
+      "ci_low": 0.004023563792917195,
+      "ci_high": 0.022663583652720115,
+      "probability_favorable": 0.9985
+    },
+    {
+      "comparison": "topology_group_vs_technical",
+      "enhanced": "technical_plus_topology",
+      "reference": "technical",
+      "metric": "mae",
+      "estimate": 0.0008735129040173678,
+      "ci_low": 0.00041372783676370923,
+      "ci_high": 0.00135211879611348,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "topology_group_vs_technical",
+      "enhanced": "technical_plus_topology",
+      "reference": "technical",
+      "metric": "r2",
+      "estimate": 0.016951129407833,
+      "ci_low": 0.01218286826454234,
+      "ci_high": 0.02206568726197644,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "topology_group_vs_technical",
+      "enhanced": "technical_plus_topology",
+      "reference": "technical",
+      "metric": "rmse",
+      "estimate": 0.0018630489715827092,
+      "ci_low": 0.0013427454709520567,
+      "ci_high": 0.002425697527372067,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "topology_group_vs_technical",
+      "enhanced": "technical_plus_topology",
+      "reference": "technical",
+      "metric": "spearman",
+      "estimate": -0.0071545497308933,
+      "ci_low": -0.012196360756652511,
+      "ci_high": -0.0022953169605296206,
+      "probability_favorable": 0.003
+    },
+    {
+      "comparison": "unique_length_full_vs_no_length",
+      "enhanced": "combined_full",
+      "reference": "combined_no_length",
+      "metric": "mae",
+      "estimate": 0.001503193656698612,
+      "ci_low": 0.0010135686480085826,
+      "ci_high": 0.001982655726054578,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "unique_length_full_vs_no_length",
+      "enhanced": "combined_full",
+      "reference": "combined_no_length",
+      "metric": "r2",
+      "estimate": 0.017135593547354,
+      "ci_low": 0.012439658457082886,
+      "ci_high": 0.021544633941680318,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "unique_length_full_vs_no_length",
+      "enhanced": "combined_full",
+      "reference": "combined_no_length",
+      "metric": "rmse",
+      "estimate": 0.001952457218443518,
+      "ci_low": 0.001428463852235095,
+      "ci_high": 0.002460066951144589,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "unique_length_full_vs_no_length",
+      "enhanced": "combined_full",
+      "reference": "combined_no_length",
+      "metric": "spearman",
+      "estimate": 0.014502291830345904,
+      "ci_low": 0.009506163117398606,
+      "ci_high": 0.019332891890855314,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "unique_localization_full_vs_no_localization",
+      "enhanced": "combined_full",
+      "reference": "combined_no_localization",
+      "metric": "mae",
+      "estimate": 0.0023919515795173887,
+      "ci_low": 0.0018070041156566384,
+      "ci_high": 0.0029533235174647927,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "unique_localization_full_vs_no_localization",
+      "enhanced": "combined_full",
+      "reference": "combined_no_localization",
+      "metric": "r2",
+      "estimate": 0.025470412273792653,
+      "ci_low": 0.019134052810716163,
+      "ci_high": 0.031304341976802895,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "unique_localization_full_vs_no_localization",
+      "enhanced": "combined_full",
+      "reference": "combined_no_localization",
+      "metric": "rmse",
+      "estimate": 0.0028934509759210025,
+      "ci_low": 0.0021700966564366098,
+      "ci_high": 0.0035808218685384925,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "unique_localization_full_vs_no_localization",
+      "enhanced": "combined_full",
+      "reference": "combined_no_localization",
+      "metric": "spearman",
+      "estimate": 0.006059667353407405,
+      "ci_low": 0.00018224128844689935,
+      "ci_high": 0.011973579360263116,
+      "probability_favorable": 0.979
+    },
+    {
+      "comparison": "unique_topology_full_vs_no_topology",
+      "enhanced": "combined_full",
+      "reference": "combined_no_topology",
+      "metric": "mae",
+      "estimate": 0.00046903585550101684,
+      "ci_low": 0.00021997189651445337,
+      "ci_high": 0.0007087827975999937,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "unique_topology_full_vs_no_topology",
+      "enhanced": "combined_full",
+      "reference": "combined_no_topology",
+      "metric": "r2",
+      "estimate": 0.004280681990059099,
+      "ci_low": 0.0019513217288145506,
+      "ci_high": 0.006294123132860975,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "unique_topology_full_vs_no_topology",
+      "enhanced": "combined_full",
+      "reference": "combined_no_topology",
+      "metric": "rmse",
+      "estimate": 0.0004925576058430192,
+      "ci_low": 0.00022345929705552478,
+      "ci_high": 0.0007220045656464133,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "unique_topology_full_vs_no_topology",
+      "enhanced": "combined_full",
+      "reference": "combined_no_topology",
+      "metric": "spearman",
+      "estimate": 0.0026289423242247256,
+      "ci_low": 0.00021273435704650682,
+      "ci_high": 0.00497618196000696,
+      "probability_favorable": 0.9855
+    }
+  ],
+  "permutation_test": {
+    "r2": {
+      "observed_favorable_delta": 0.06535276841085191,
+      "null_median": -0.0011590732670106463,
+      "null_95_high": -0.0002897981820701225,
+      "empirical_p_one_sided": 0.009900990099009901
+    },
+    "rmse": {
+      "observed_favorable_delta": 0.00731965653797198,
+      "null_median": -0.0001265121424783161,
+      "null_95_high": -3.1641555907649406e-05,
+      "empirical_p_one_sided": 0.009900990099009901
+    },
+    "mae": {
+      "observed_favorable_delta": 0.005110197769247246,
+      "null_median": -0.00013011882508093958,
+      "null_95_high": -4.551790473262477e-05,
+      "empirical_p_one_sided": 0.009900990099009901
+    },
+    "spearman": {
+      "observed_favorable_delta": 0.012767838232712214,
+      "null_median": -0.0021897594898719897,
+      "null_95_high": -0.0014314629864917495,
+      "empirical_p_one_sided": 0.009900990099009901
+    }
+  },
+  "interpretation": "Positive favorable deltas favor the enhanced model. Biological rows are permuted jointly to preserve correlations among annotations while breaking their gene-specific relationship to the outcome and technical covariates."
+}
