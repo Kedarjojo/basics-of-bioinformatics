@@ -29,6 +29,7 @@ UNIPROT_FIELDS = [
     "accession",
     "id",
     "gene_primary",
+    "gene_names",
     "length",
     "cc_subcellular_location",
     "ft_signal",
@@ -39,7 +40,8 @@ UNIPROT_FIELDS = [
 EXPECTED_COLUMNS = [
     "accession",
     "entry_name",
-    "gene",
+    "gene_primary",
+    "gene_names_raw",
     "protein_length",
     "subcellular_location_raw",
     "signal_peptide_raw",
@@ -110,7 +112,8 @@ def parse_uniprot(payload: bytes) -> pd.DataFrame:
             f"{frame.columns.tolist()}"
         )
     frame.columns = EXPECTED_COLUMNS
-    frame["gene"] = frame["gene"].str.strip()
+    frame["gene_primary"] = frame["gene_primary"].str.strip()
+    frame["gene_names_raw"] = frame["gene_names_raw"].str.strip()
     frame["protein_length"] = pd.to_numeric(frame["protein_length"], errors="coerce")
     return frame
 
@@ -120,10 +123,12 @@ def count_transmembrane(value: str) -> int:
 
 
 def collapse_gene_annotations(uniprot: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    usable = uniprot.loc[uniprot["gene"] != ""].copy()
-    duplicate_counts = usable["gene"].value_counts()
+    usable = uniprot.loc[uniprot["gene_primary"] != ""].copy()
+    duplicate_counts = usable["gene_primary"].value_counts()
     duplicate_genes = duplicate_counts.loc[duplicate_counts > 1].rename("uniprot_entries")
-    duplicate_table = duplicate_genes.reset_index().rename(columns={"index": "gene"})
+    duplicate_table = duplicate_genes.reset_index().rename(
+        columns={"gene_primary": "gene"}
+    )
 
     usable["has_signal_peptide"] = usable["signal_peptide_raw"].str.strip().ne("")
     usable["transmembrane_domain_count"] = usable["transmembrane_raw"].map(
@@ -134,7 +139,7 @@ def collapse_gene_annotations(uniprot: pd.DataFrame) -> tuple[pd.DataFrame, pd.D
         usable[column] = location.str.contains(pattern, regex=True, na=False)
 
     rows: list[dict] = []
-    for gene, group in usable.groupby("gene", sort=True):
+    for gene, group in usable.groupby("gene_primary", sort=True):
         row: dict[str, object] = {
             "gene": gene,
             "uniprot_annotation_available": True,
@@ -165,12 +170,94 @@ def collapse_gene_annotations(uniprot: pd.DataFrame) -> tuple[pd.DataFrame, pd.D
     return pd.DataFrame(rows), duplicate_table
 
 
-def join_atlas(atlas: pd.DataFrame, annotations: pd.DataFrame) -> pd.DataFrame:
-    merged = atlas[["gene"]].merge(
-        annotations,
-        on="gene",
+def build_alias_tables(
+    uniprot: pd.DataFrame,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Map each UniProt gene name to reviewed primary symbols.
+
+    The UniProt gene_names field is whitespace-delimited. Repeated aliases that
+    resolve to the same primary symbol are harmless; aliases assigned to more
+    than one primary symbol are retained as ambiguous and never auto-mapped.
+    """
+    alias_to_primary: dict[str, set[str]] = {}
+    usable = uniprot.loc[uniprot["gene_primary"] != ""]
+    for row in usable.itertuples(index=False):
+        names = {row.gene_primary, *row.gene_names_raw.split()}
+        for alias in names:
+            alias = alias.strip()
+            if alias:
+                alias_to_primary.setdefault(alias, set()).add(row.gene_primary)
+
+    unique_rows: list[dict[str, str]] = []
+    ambiguous_rows: list[dict[str, object]] = []
+    for alias, primary_genes in sorted(alias_to_primary.items()):
+        if len(primary_genes) == 1:
+            unique_rows.append(
+                {"alias": alias, "uniprot_primary_gene": next(iter(primary_genes))}
+            )
+        else:
+            ambiguous_rows.append(
+                {
+                    "alias": alias,
+                    "uniprot_primary_gene_count": len(primary_genes),
+                    "uniprot_primary_genes": ";".join(sorted(primary_genes)),
+                }
+            )
+    unique_table = pd.DataFrame(
+        unique_rows, columns=["alias", "uniprot_primary_gene"]
+    )
+    ambiguous_table = pd.DataFrame(
+        ambiguous_rows,
+        columns=[
+            "alias",
+            "uniprot_primary_gene_count",
+            "uniprot_primary_genes",
+        ],
+    )
+    return unique_table, ambiguous_table
+
+
+def join_atlas(
+    atlas: pd.DataFrame,
+    annotations: pd.DataFrame,
+    unique_aliases: pd.DataFrame,
+    ambiguous_aliases: pd.DataFrame,
+) -> pd.DataFrame:
+    primary_symbols = set(annotations["gene"])
+    unique_alias_map = dict(
+        zip(unique_aliases["alias"], unique_aliases["uniprot_primary_gene"])
+    )
+    ambiguous_symbols = set(ambiguous_aliases.get("alias", pd.Series(dtype=str)))
+
+    mapping_rows: list[dict[str, str]] = []
+    for gene in atlas["gene"]:
+        if gene in primary_symbols:
+            mapping_method = "primary"
+            primary_gene = gene
+        elif gene in unique_alias_map:
+            mapping_method = "unique_synonym"
+            primary_gene = unique_alias_map[gene]
+        elif gene in ambiguous_symbols:
+            mapping_method = "ambiguous_synonym"
+            primary_gene = ""
+        else:
+            mapping_method = "unmatched"
+            primary_gene = ""
+        mapping_rows.append(
+            {
+                "gene": gene,
+                "uniprot_primary_gene": primary_gene,
+                "mapping_method": mapping_method,
+            }
+        )
+
+    mapping = pd.DataFrame(mapping_rows)
+    annotation_lookup = annotations.rename(columns={"gene": "uniprot_primary_gene"})
+    merged = mapping.merge(
+        annotation_lookup,
+        on="uniprot_primary_gene",
         how="left",
-        validate="one_to_one",
+        validate="many_to_one",
     )
     merged["uniprot_annotation_available"] = merged[
         "uniprot_annotation_available"
@@ -212,13 +299,18 @@ def main() -> None:
     payload, url = download_uniprot(raw_path, args.timeout, args.force)
     uniprot = parse_uniprot(payload)
     annotations, duplicate_table = collapse_gene_annotations(uniprot)
-    atlas_annotations = join_atlas(atlas, annotations)
+    unique_aliases, ambiguous_aliases = build_alias_tables(uniprot)
+    atlas_annotations = join_atlas(
+        atlas, annotations, unique_aliases, ambiguous_aliases
+    )
 
     TABLE_DIR.mkdir(parents=True, exist_ok=True)
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     annotations.to_csv(TABLE_DIR / "uniprot_reviewed_human_gene_annotations.csv", index=False)
     atlas_annotations.to_csv(TABLE_DIR / "cptac_atlas_uniprot_annotations.csv", index=False)
     duplicate_table.to_csv(TABLE_DIR / "uniprot_duplicate_primary_gene_symbols.csv", index=False)
+    unique_aliases.to_csv(TABLE_DIR / "uniprot_unique_gene_aliases.csv", index=False)
+    ambiguous_aliases.to_csv(TABLE_DIR / "uniprot_ambiguous_gene_aliases.csv", index=False)
 
     available = atlas_annotations["uniprot_annotation_available"]
     report = {
@@ -230,13 +322,29 @@ def main() -> None:
         "request_url": url,
         "raw_sha256": hashlib.sha256(payload).hexdigest(),
         "raw_rows": len(uniprot),
-        "raw_rows_with_primary_gene_symbol": int((uniprot["gene"] != "").sum()),
+        "raw_rows_with_primary_gene_symbol": int(
+            (uniprot["gene_primary"] != "").sum()
+        ),
         "raw_unique_primary_gene_symbols": int(
-            uniprot.loc[uniprot["gene"] != "", "gene"].nunique()
+            uniprot.loc[
+                uniprot["gene_primary"] != "", "gene_primary"
+            ].nunique()
         ),
         "unique_annotated_genes": len(annotations),
         "duplicate_primary_gene_symbols": len(duplicate_table),
         "atlas_genes": len(atlas_annotations),
+        "atlas_primary_mapped_genes": int(
+            (atlas_annotations["mapping_method"] == "primary").sum()
+        ),
+        "atlas_unique_synonym_mapped_genes": int(
+            (atlas_annotations["mapping_method"] == "unique_synonym").sum()
+        ),
+        "atlas_ambiguous_synonym_genes": int(
+            (atlas_annotations["mapping_method"] == "ambiguous_synonym").sum()
+        ),
+        "atlas_unmatched_genes": int(
+            (atlas_annotations["mapping_method"] == "unmatched").sum()
+        ),
         "atlas_annotated_genes": int(available.sum()),
         "atlas_annotation_coverage": float(available.mean()),
         "coverage_gate_0_70_pass": bool(available.mean() >= 0.70),
@@ -252,8 +360,11 @@ def main() -> None:
             atlas_annotations.loc[available, "protein_length"].isna().sum()
         ),
         "mapping_rule": (
-            "Primary gene symbol; multiple reviewed entries collapsed by median length, "
-            "maximum transmembrane count, and union of binary annotations"
+            "Exact primary symbol first; otherwise a synonym mapping only when it "
+            "resolves to exactly one reviewed UniProt primary symbol. Ambiguous "
+            "synonyms remain unmapped. Multiple reviewed entries for one primary "
+            "symbol are collapsed by median length, maximum transmembrane count, "
+            "and union of binary annotations."
         ),
     }
     (REPORT_DIR / "uniprot_annotation_coverage.json").write_text(
