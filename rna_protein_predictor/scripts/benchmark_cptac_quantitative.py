@@ -51,10 +51,17 @@ def load_cancer(cancer: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     common_samples = rna.index.astype(str).intersection(protein.index.astype(str))
     common_samples = common_samples.intersection(pd.Index(tumour_ids))
     common_genes = rna.columns.intersection(protein.columns)
-    return (
-        rna.loc[common_samples, common_genes].apply(pd.to_numeric, errors="coerce"),
-        protein.loc[common_samples, common_genes].apply(pd.to_numeric, errors="coerce"),
-    )
+    rna = rna.loc[common_samples, common_genes].apply(
+    pd.to_numeric,
+    errors="coerce",)
+    protein = protein.loc[common_samples, common_genes].apply(
+        pd.to_numeric,
+        errors="coerce",)
+    if (rna < 0).any().any():
+        raise ValueError(
+            "Negative WashU FPKM values found; log2(FPKM + 1) is not valid.")
+    rna = np.log2(rna + 1.0)
+    return rna, protein
 
 
 def within_cancer_cv(
