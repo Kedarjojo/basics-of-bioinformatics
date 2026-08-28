@@ -56,15 +56,15 @@ def cross_validate(
     for split_index, (train, test) in enumerate(splitter.split(x)):
         repeat = split_index // folds
         fold = split_index % folds
-        null_prediction = np.full(len(test), np.mean(y[train]))
+        intercept_only_prediction = np.full(len(test), np.mean(y[train]))
         model = make_pipeline(
             StandardScaler(),
             RidgeCV(alphas=ALPHAS),
         ).fit(x[train], y[train])
         technical_prediction = model.predict(x[test])
         alpha = float(model[-1].alpha_)
-        for position, null_value, technical_value in zip(
-            test, null_prediction, technical_prediction
+        for position, intercept_only_value, technical_value in zip(
+            test, intercept_only_prediction, technical_prediction
         ):
             rows.append(
                 {
@@ -72,7 +72,7 @@ def cross_validate(
                     "repeat": repeat,
                     "fold": fold,
                     "observed": y[position],
-                    "pred_null": float(null_value),
+                    "pred_intercept_only": float(intercept_only_value),
                     "pred_technical": float(technical_value),
                     "ridge_alpha": alpha,
                 }
@@ -84,7 +84,7 @@ def repeat_metrics(pred: pd.DataFrame) -> pd.DataFrame:
     rows = []
     for repeat, group in pred.groupby("repeat", sort=True):
         observed = group["observed"].to_numpy(float)
-        for model in ("null", "technical"):
+        for model in ("intercept_only", "technical"):
             fitted = group[f"pred_{model}"].to_numpy(float)
             rows.append(
                 {
@@ -106,7 +106,7 @@ def bootstrap_average_predictions(
         pred.groupby("gene", sort=True)
         .agg(
             observed=("observed", "first"),
-            pred_null=("pred_null", "mean"),
+            pred_intercept_only=("pred_intercept_only", "mean"),
             pred_technical=("pred_technical", "mean"),
         )
         .reset_index()
@@ -117,7 +117,7 @@ def bootstrap_average_predictions(
     for replicate in range(replicates):
         draw = averaged.iloc[rng.integers(0, n, n)]
         observed = draw["observed"].to_numpy(float)
-        for model in ("null", "technical"):
+        for model in ("intercept_only", "technical"):
             fitted = draw[f"pred_{model}"].to_numpy(float)
             rows.append(
                 {
