@@ -229,16 +229,30 @@ def atlas_distribution_panel(ax: plt.Axes, atlas: pd.DataFrame) -> None:
 
 
 def per_cancer_distribution_panel(ax: plt.Axes, by_cancer: pd.DataFrame) -> None:
-    values = [by_cancer.loc[by_cancer["cancer"] == cancer, "ridge_mse_improvement"].dropna().to_numpy() for cancer in CANCERS]
-    violin = ax.violinplot(values, showmedians=True, showextrema=False)
-    for body in violin["bodies"]:
-        body.set_facecolor(LIGHT_BLUE); body.set_edgecolor(BLUE); body.set_alpha(0.8)
-    violin["cmedians"].set_color(BLACK)
+    # Relative MSE can have rare, arbitrarily large negative values when a
+    # gene's baseline error is very small.  Show robust distribution summaries
+    # rather than allowing a few ratios to collapse the central 95% of genes.
+    rows = []
+    for cancer in CANCERS:
+        values = by_cancer.loc[
+            by_cancer["cancer"] == cancer, "ridge_mse_improvement"
+        ].dropna()
+        rows.append({
+            "cancer": cancer,
+            "median": values.median(),
+            "q25": values.quantile(0.25), "q75": values.quantile(0.75),
+            "q05": values.quantile(0.05), "q95": values.quantile(0.95),
+        })
+    data = pd.DataFrame(rows)
+    x = np.arange(len(data))
+    ax.vlines(x, data["q05"], data["q95"], color=LIGHT_BLUE, linewidth=2.0, zorder=1)
+    ax.vlines(x, data["q25"], data["q75"], color=BLUE, linewidth=7.5, zorder=2)
+    ax.scatter(x, data["median"], color=BLACK, s=34, zorder=3)
     ax.axhline(0, color=BLACK, linestyle="--", linewidth=0.8)
-    ax.set_xticks(range(1, 5), CANCERS)
+    ax.set_xticks(x, CANCERS)
     ax.set_ylabel("Gene-level Ridge MSE improvement")
     ax.yaxis.set_major_formatter(lambda value, _: f"{value:.0%}")
-    ax.set_title("The atlas captures cohort-specific variation", loc="left")
+    ax.set_title("Cohort variation is not driven by extreme ratios", loc="left")
     clean_axis(ax)
 
 
@@ -271,7 +285,7 @@ def directional_consistency_panel(ax: plt.Axes, atlas: pd.DataFrame) -> None:
     ax.set_ylim(0, 1)
     ax.yaxis.set_major_formatter(lambda value, _: f"{value:.0%}")
     ax.set_ylabel("Genes")
-    ax.set_title("More complete profiles are directionally consistent", loc="left")
+    ax.set_title("Positive predictability is common across coverage strata", loc="left")
     ax.legend(frameon=False, fontsize=7.5, loc="lower left")
     clean_axis(ax)
 
@@ -286,6 +300,7 @@ def atlas_figure(atlas: pd.DataFrame, by_cancer: pd.DataFrame, out: Path) -> Non
         panel_label(ax, label)
     fig.suptitle("An 8,681-gene atlas reveals reproducible RNA-to-protein predictability", fontsize=14.5, fontweight="bold", y=1.01)
     fig.text(0.5, -0.012, "Primary target: median cross-cancer Ridge MSE improvement versus the training-fold gene mean. "
+             "Panel B shows medians (points), IQRs (thick bars), and 5th–95th percentiles (thin bars), limiting the influence of rare unstable ratios. "
              "Genes were evaluated in at least three cancers; no high/low predictability threshold was used for modeling.",
              ha="center", fontsize=8, color=GRAY)
     fig.tight_layout(h_pad=2.5, w_pad=3.0)
