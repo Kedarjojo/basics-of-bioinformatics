@@ -1,0 +1,287 @@
+{
+  "analysis": "held-out-gene technical and biological predictability comparison",
+  "created_utc": "2026-08-28T17:48:36.521506+00:00",
+  "target": "primary_median_ridge_improvement",
+  "genes": 8672,
+  "mapping_method_counts": {
+    "primary": 8556,
+    "unique_synonym": 116
+  },
+  "technical_features": [
+    "median_rna_mean",
+    "median_rna_sd",
+    "median_rna_iqr",
+    "median_protein_mean",
+    "median_protein_sd",
+    "median_protein_iqr",
+    "median_protein_coverage",
+    "minimum_protein_coverage",
+    "median_paired_patients",
+    "cancers_observed"
+  ],
+  "biological_features": [
+    "log1p_protein_length",
+    "log1p_transmembrane_count",
+    "has_signal_peptide",
+    "uniprot_secreted",
+    "uniprot_extracellular",
+    "uniprot_plasma_membrane",
+    "uniprot_membrane_any",
+    "uniprot_cytosol",
+    "uniprot_nucleus",
+    "uniprot_mitochondrion",
+    "uniprot_endoplasmic_reticulum",
+    "uniprot_golgi",
+    "uniprot_lysosome",
+    "uniprot_peroxisome",
+    "uniprot_cell_junction"
+  ],
+  "models": [
+    "intercept_only",
+    "technical",
+    "biological",
+    "combined"
+  ],
+  "folds": 5,
+  "repeats": 20,
+  "bootstrap_replicates": 2000,
+  "seed": 20260828,
+  "ridge_alphas": [
+    0.0001,
+    0.00031622776601683794,
+    0.001,
+    0.0031622776601683794,
+    0.01,
+    0.03162277660168379,
+    0.1,
+    0.31622776601683794,
+    1.0,
+    3.1622776601683795,
+    10.0,
+    31.622776601683793,
+    100.0,
+    316.22776601683796,
+    1000.0,
+    3162.2776601683795,
+    10000.0
+  ],
+  "full_model_alphas": {
+    "technical": 31.622776601683793,
+    "biological": 316.22776601683796,
+    "combined": 31.622776601683793
+  },
+  "model_intervals": [
+    {
+      "model": "biological",
+      "metric": "r2",
+      "estimate": 0.07706801803795099,
+      "ci_low": 0.06653115487443169,
+      "ci_high": 0.0878756445473503
+    },
+    {
+      "model": "biological",
+      "metric": "rmse",
+      "estimate": 0.171558448973743,
+      "ci_low": 0.16891858260610962,
+      "ci_high": 0.1741975824743507
+    },
+    {
+      "model": "biological",
+      "metric": "mae",
+      "estimate": 0.13852511083748026,
+      "ci_low": 0.13642325425614904,
+      "ci_high": 0.14060481149243678
+    },
+    {
+      "model": "biological",
+      "metric": "spearman",
+      "estimate": 0.27569359095000256,
+      "ci_low": 0.2563102475047205,
+      "ci_high": 0.2952250900742818
+    },
+    {
+      "model": "combined",
+      "metric": "r2",
+      "estimate": 0.3961695293346779,
+      "ci_low": 0.3761528837826845,
+      "ci_high": 0.41440468135813735
+    },
+    {
+      "model": "combined",
+      "metric": "rmse",
+      "estimate": 0.13876246543885817,
+      "ci_low": 0.13653398196513472,
+      "ci_high": 0.14122013534284092
+    },
+    {
+      "model": "combined",
+      "metric": "mae",
+      "estimate": 0.10952679710625779,
+      "ci_low": 0.10781099272384151,
+      "ci_high": 0.11132219752916066
+    },
+    {
+      "model": "combined",
+      "metric": "spearman",
+      "estimate": 0.6201554839897063,
+      "ci_low": 0.606347203273661,
+      "ci_high": 0.6347555085202685
+    },
+    {
+      "model": "intercept_only",
+      "metric": "r2",
+      "estimate": -0.0002834783102240168,
+      "ci_low": -0.0008036868302731925,
+      "ci_high": -0.00019483178393348013
+    },
+    {
+      "model": "intercept_only",
+      "metric": "rmse",
+      "estimate": 0.17860179963729847,
+      "ci_low": 0.1759944714607538,
+      "ci_high": 0.18132576996964722
+    },
+    {
+      "model": "intercept_only",
+      "metric": "mae",
+      "estimate": 0.14663432697321455,
+      "ci_low": 0.14453805481096466,
+      "ci_high": 0.1487774732203509
+    },
+    {
+      "model": "intercept_only",
+      "metric": "spearman",
+      "estimate": -0.08353260698592899,
+      "ci_low": -0.10408742414408603,
+      "ci_high": -0.06268539415406
+    },
+    {
+      "model": "technical",
+      "metric": "r2",
+      "estimate": 0.3305425450031947,
+      "ci_low": 0.30860982618112764,
+      "ci_high": 0.35173689721592516
+    },
+    {
+      "model": "technical",
+      "metric": "rmse",
+      "estimate": 0.1460681179534709,
+      "ci_low": 0.14369715739804895,
+      "ci_high": 0.1488346807038975
+    },
+    {
+      "model": "technical",
+      "metric": "mae",
+      "estimate": 0.11464123511185355,
+      "ci_low": 0.11282669228136537,
+      "ci_high": 0.11662482798513132
+    },
+    {
+      "model": "technical",
+      "metric": "spearman",
+      "estimate": 0.6074930796596819,
+      "ci_low": 0.5922814295805322,
+      "ci_high": 0.6222453264586032
+    }
+  ],
+  "paired_model_intervals": [
+    {
+      "comparison": "biological_vs_intercept",
+      "metric": "mae",
+      "estimate": 0.00811949689085506,
+      "ci_low": 0.0071626197158762405,
+      "ci_high": 0.00911815135909488,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "biological_vs_intercept",
+      "metric": "r2",
+      "estimate": 0.07744060493326244,
+      "ci_low": 0.06696753503765511,
+      "ci_high": 0.08811436516253006,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "biological_vs_intercept",
+      "metric": "rmse",
+      "estimate": 0.007048612483954192,
+      "ci_low": 0.006070726635675746,
+      "ci_high": 0.008076008453702516,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "biological_vs_intercept",
+      "metric": "spearman",
+      "estimate": 0.35875102885656873,
+      "ci_low": 0.3305298522565823,
+      "ci_high": 0.387980008401062,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "combined_vs_biological",
+      "metric": "mae",
+      "estimate": 0.028998171238426233,
+      "ci_low": 0.027269624608596915,
+      "ci_high": 0.030823531180070772,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "combined_vs_biological",
+      "metric": "r2",
+      "estimate": 0.3190479458811029,
+      "ci_low": 0.2989340630559927,
+      "ci_high": 0.3372245820519709,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "combined_vs_biological",
+      "metric": "rmse",
+      "estimate": 0.032797852663626156,
+      "ci_low": 0.030327376803260073,
+      "ci_high": 0.035132357922612205,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "combined_vs_biological",
+      "metric": "spearman",
+      "estimate": 0.34411735385238784,
+      "ci_low": 0.32558333567235875,
+      "ci_high": 0.3632061911929494,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "combined_vs_technical",
+      "metric": "mae",
+      "estimate": 0.00513416344217555,
+      "ci_low": 0.004237212683740127,
+      "ci_high": 0.006016886060208809,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "combined_vs_technical",
+      "metric": "r2",
+      "estimate": 0.06561639130373009,
+      "ci_low": 0.05492687827524475,
+      "ci_high": 0.0758085457910101,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "combined_vs_technical",
+      "metric": "rmse",
+      "estimate": 0.007341789007157332,
+      "ci_low": 0.006191940164862995,
+      "ci_high": 0.008474434406137847,
+      "probability_favorable": 1.0
+    },
+    {
+      "comparison": "combined_vs_technical",
+      "metric": "spearman",
+      "estimate": 0.012915849698156012,
+      "ci_low": 0.003528615210760233,
+      "ci_high": 0.02224920787944767,
+      "probability_favorable": 0.996
+    }
+  ],
+  "interpretation_rule": "Positive favorable_delta favors the first model named in comparison. Biological incremental value is assessed primarily by combined_vs_technical.",
+  "descriptive_group_warning": "Localization group summaries are unadjusted descriptions; adjusted inference comes from held-out combined-versus-technical prediction."
+}
