@@ -46,8 +46,8 @@ COMPARISON_LABELS = {
 }
 
 FEATURE_LABELS = {
-    "log1p_protein_length": "Protein length (log₁₊)",
-    "log1p_transmembrane_count": "Transmembrane count (log₁₊)",
+    "log1p_protein_length": "Protein length, log(1 + x)",
+    "log1p_transmembrane_count": "Transmembrane count, log(1 + x)",
     "has_signal_peptide": "Signal peptide",
     "uniprot_secreted": "Secreted",
     "uniprot_extracellular": "Extracellular",
@@ -131,12 +131,16 @@ def model_performance_panel(ax: plt.Axes, intervals: pd.DataFrame) -> None:
                 elinewidth=1.2, capsize=3, zorder=2)
     ax.scatter(data["estimate"], y, s=65, c=colors, edgecolor="white",
                linewidth=0.8, zorder=3)
-    for yi, value in zip(y, data["estimate"]):
-        ax.text(value + 0.012, yi, f"{value:.3f}", va="center", fontsize=8.5)
+    for yi, value, upper in zip(y, data["estimate"], data["ci_high"]):
+        ax.annotate(
+            f"{value:.3f}", xy=(upper, yi), xytext=(7, 0),
+            textcoords="offset points", va="center", ha="left", fontsize=8.5,
+            bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.6},
+        )
     ax.set_yticks(y, [MODEL_LABELS[x] for x in data["model"]])
     ax.set_xlim(0, max(0.44, data["ci_high"].max() + 0.045))
     ax.set_xlabel("Held-out gene R²")
-    ax.set_title("Biology improves held-out prediction", loc="left")
+    ax.set_title("Independent biology improves held-out prediction", loc="left")
     ax.invert_yaxis()
     clean_axis(ax)
 
@@ -209,7 +213,7 @@ def descriptive_panel(ax: plt.Axes, groups: pd.DataFrame) -> None:
     labels = [f"{FEATURE_LABELS[x]} (n={n:,})"
               for x, n in zip(data["feature"], data["present_n"])]
     ax.set_yticks(y, labels)
-    ax.set_xlabel("Median predictability difference: annotated − other genes")
+    ax.set_xlabel("Median predictability difference: annotated − not annotated")
     ax.set_title("Unadjusted localization contrasts", loc="left")
     clean_axis(ax)
 
@@ -259,14 +263,14 @@ def main() -> None:
     for ax, label in zip(axes.flat, "ABCD"):
         panel_label(ax, label)
     fig.suptitle(
-        "Technical and biological determinants of RNA–protein predictability",
+        "Protein biology improves RNA-to-protein predictability beyond technical factors",
         fontsize=15, fontweight="bold", x=0.5, y=1.005,
     )
     fig.text(
         0.5, -0.012,
         "n = 8,672 genes. Model intervals use 2,000 paired gene bootstraps; "
         "coefficient ranges show the 2.5th–97.5th percentiles across 100 CV fits. "
-        "Panel D is unadjusted.",
+        "Panel D is unadjusted; n denotes genes annotated for each feature.",
         ha="center", va="bottom", fontsize=8, color=GRAY,
     )
     fig.tight_layout(h_pad=2.2, w_pad=3.0)
