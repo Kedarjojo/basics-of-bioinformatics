@@ -1,0 +1,67 @@
+{
+  "analysis": "held-out-gene technical predictability baseline",
+  "target": "primary_median_ridge_improvement",
+  "genes": 8681,
+  "features": [
+    "median_rna_mean",
+    "median_rna_sd",
+    "median_rna_iqr",
+    "median_protein_mean",
+    "median_protein_sd",
+    "median_protein_iqr",
+    "median_protein_coverage",
+    "minimum_protein_coverage",
+    "median_paired_patients",
+    "cancers_observed"
+  ],
+  "folds": 5,
+  "repeats": 20,
+  "bootstrap_replicates": 2000,
+  "full_model_alpha": 31.622776601683793,
+  "technical_model_intervals": [
+    {
+      "metric": "r2",
+      "model": "technical",
+      "estimate": 0.3300873083046868,
+      "ci_low": 0.3094422202767106,
+      "ci_high": 0.3507295170154828
+    },
+    {
+      "metric": "rmse",
+      "model": "technical",
+      "estimate": 0.14619602718270758,
+      "ci_low": 0.1435339339372285,
+      "ci_high": 0.1488127432380844
+    },
+    {
+      "metric": "mae",
+      "model": "technical",
+      "estimate": 0.11471097069046,
+      "ci_low": 0.11275605730062715,
+      "ci_high": 0.11669788016967808
+    },
+    {
+      "metric": "spearman",
+      "model": "technical",
+      "estimate": 0.6067230530886865,
+      "ci_low": 0.5919139587723063,
+      "ci_high": 0.6214067730310803
+    }
+  ],
+  "repeat_metric_medians": [
+    {
+      "model": "intercept_only",
+      "r2": -0.00022341485801113947,
+      "rmse": 0.17866895217473763,
+      "mae": 0.1466788785958183,
+      "spearman": -0.01861585074441651
+    },
+    {
+      "model": "technical",
+      "r2": 0.33018361608511765,
+      "rmse": 0.14621046727959916,
+      "mae": 0.1147204438025829,
+      "spearman": 0.6066834369481783
+    }
+  ]
+}
